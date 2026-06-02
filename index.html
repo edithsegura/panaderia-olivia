@@ -6,12 +6,26 @@
 <title>Panadería Olivia — Sistema de Gestión</title>
 <style>
 :root{
-  --bg:#1a0f08;--card:#241509;--card2:#2e1a0a;--side:#110c05;
-  --brd:#3d2410;--gold:#d4912a;--goldL:#e8b05a;--goldD:#8a5a1a;
-  --cream:#f5e6c8;--creamD:#c4a87a;--txt:#f0dfc0;--muted:#7a5c38;
+  --bg:#faf7f4;--card:#ffffff;--card2:#f5ede0;--side:#3d1e08;
+  --brd:#e8d5bc;--gold:#c47a18;--goldL:#d4912a;--goldD:#8a5a1a;
+  --cream:#3d1e08;--creamD:#5a3010;--txt:#2a1505;--muted:#8a6040;
   --grn:#2d7a3a;--red:#a83225;--amb:#c47a1a;--blu:#2a6cb5;
   --r:8px;
 }
+/* sidebar stays dark */
+#sidebar{background:#3d1e08!important;border-right:1px solid #5a3010!important;}
+#topbar{background:#3d1e08!important;border-bottom:1px solid #5a3010!important;}
+.nav-btn .nl{color:#c4a87a!important;}
+.nav-btn.active .nl{color:#e8b05a!important;}
+.nav-btn:hover{background:rgba(232,176,90,.15)!important;}
+.nav-btn.active{background:rgba(232,176,90,.2)!important;border-left-color:#e8b05a!important;}
+.sb-logo-title{color:#e8b05a!important;}
+.sb-logo-sub{color:#c4a87a!important;}
+#topbar #topbar-title{color:#f5e6c8!important;}
+#topbar span{color:#c4a87a!important;}
+#bottomnav{background:rgba(61,30,8,.97)!important;}
+.bnav-btn .bl{color:#c4a87a!important;}
+.bnav-btn.active .bl{color:#e8b05a!important;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
 input,select,button,textarea{font-family:inherit;}
@@ -155,6 +169,7 @@ input::placeholder{color:var(--muted);}
 <a id="fab" href="https://wa.me/5493816477520?text=Hola%20Panader%C3%ADa%20Olivia%2C%20quiero%20hacer%20un%20pedido%20%F0%9F%A5%96" target="_blank">💬</a>
 
 <!-- APP -->
+<!-- admin layout (shown after login) -->
 <div id="app">
   <!-- SIDEBAR -->
   <div id="sidebar">
@@ -1078,9 +1093,293 @@ function bindModalEvents(){}
 document.getElementById("modal").addEventListener("click",e=>{if(e.target===document.getElementById("modal"))closeModal();});
 
 // ═══════════════════════════════════════════════
+// VISTA CLIENTE — catálogo público
+// ═══════════════════════════════════════════════
+function renderVistaCliente(){
+  const cats=["todos",...new Set(PRODS.map(p=>p.cat))];
+  const lista=clienteCat==="todos"?PRODS.filter(p=>p.stk>0):PRODS.filter(p=>p.cat===clienteCat&&p.stk>0);
+  const totalQ=Object.values(clienteCarrito).reduce((a,q)=>a+q,0);
+  const totalP=Object.entries(clienteCarrito).reduce((a,[id,q])=>{const p=PRODS.find(x=>x.id===id);return a+(p?p.pMay*q:0);},0);
+  document.getElementById("app-wrapper").innerHTML=`
+  <div style="background:#faf7f4;min-height:100vh;font-family:'Segoe UI',sans-serif;">
+    <!-- HEADER -->
+    <div style="background:#3d1e08;padding:14px 20px;position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.3)">
+      <div>
+        <div style="font-size:17px;font-weight:900;color:#e8b05a">🥖 Panadería Olivia</div>
+        <div style="font-size:10px;color:#c4a87a">Pedidos mayoristas · Tucumán</div>
+      </div>
+      <div style="display:flex;gap:9px;align-items:center">
+        <button onclick="toggleCarritoCliente()" style="background:${totalQ>0?'rgba(232,176,90,.2)':'transparent'};border:1px solid ${totalQ>0?'#e8b05a':'rgba(232,176,90,.3)'};color:#e8b05a;border-radius:8px;padding:8px 13px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">
+          🛒 ${totalQ>0?totalQ+' · '+$n(totalP):'Carrito'}
+        </button>
+        <button onclick="showLogin()" style="background:transparent;border:1px solid rgba(196,168,122,.3);color:#c4a87a;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:13px">⚙️</button>
+      </div>
+    </div>
+    <!-- BANNER -->
+    <div style="background:linear-gradient(135deg,#3d1e08,#241509);margin:14px 16px 0;border-radius:12px;padding:16px 18px;border:1px solid rgba(232,176,90,.2)">
+      <div style="font-size:14px;color:#f5e6c8;font-weight:700;margin-bottom:3px">¡Bienvenido/a! 👋</div>
+      <div style="font-size:12px;color:#8a6040">Elegí tus productos y confirmá el pedido por WhatsApp.</div>
+    </div>
+    <!-- CATS -->
+    <div style="display:flex;gap:7px;padding:12px 16px 0;overflow-x:auto;padding-bottom:4px">
+      ${cats.map(c=>`<button onclick="clienteCat='${c}';renderVistaCliente()" style="background:${clienteCat===c?'#c47a18':'transparent'};color:${clienteCat===c?'#fff':'#8a6040'};border:1px solid ${clienteCat===c?'#c47a18':'#e8d5bc'};border-radius:20px;padding:5px 13px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">${c}</button>`).join('')}
+    </div>
+    <!-- GRID -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:12px 16px 100px">
+      ${lista.map(p=>{const q=clienteCarrito[p.id]||0;return`
+      <div style="background:#fff;border:1.5px solid ${q>0?'#c47a18':'#e8d5bc'};border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <div style="position:relative;height:140px;overflow:hidden;cursor:pointer" onclick="verDetalleCliente('${p.id}')">
+          <img loading="lazy" src="${fs(p)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='${FD.default}'">
+          ${q>0?`<div style="position:absolute;top:7px;left:7px;background:#c47a18;color:#fff;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">×${q}</div>`:''}
+        </div>
+        <div style="padding:10px 11px 12px">
+          <div style="font-size:9px;color:#8a6040">${p.cat}</div>
+          <div style="font-size:13px;font-weight:700;color:#2a1505;line-height:1.2;margin:3px 0 5px">${p.nom}</div>
+          <div style="font-size:14px;color:#c47a18;font-weight:800">${$n(p.pMay)}<span style="font-size:9px;color:#8a6040;font-weight:400;margin-left:2px">/${p.uni}</span></div>
+          ${q>0?`
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#faf7f4;border-radius:6px;padding:4px 7px;margin-top:7px">
+            <button onclick="chgClienteCarrito('${p.id}',-1)" style="background:#e8d5bc;border:none;border-radius:4px;width:26px;height:26px;cursor:pointer;font-size:15px;font-weight:700">−</button>
+            <span style="font-size:13px;color:#c47a18;font-weight:700">${q}</span>
+            <button onclick="chgClienteCarrito('${p.id}',1)" style="background:#c47a18;color:#fff;border:none;border-radius:4px;width:26px;height:26px;cursor:pointer;font-size:15px;font-weight:700">+</button>
+          </div>`:`
+          <button onclick="chgClienteCarrito('${p.id}',1)" style="width:100%;background:linear-gradient(135deg,#c47a18,#d4912a);color:#fff;border:none;border-radius:7px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:7px">+ Agregar</button>`}
+        </div>
+      </div>`}).join('')}
+    </div>
+    <!-- CARRITO MODAL -->
+    <div id="carrito-modal" style="display:none;position:fixed;inset:0;background:#000000aa;z-index:200;align-items:flex-end;justify-content:center">
+      <div style="background:#fff;border-radius:14px 14px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #e8d5bc;position:sticky;top:0;background:#fff">
+          <span style="font-weight:700;font-size:15px;color:#2a1505">Tu pedido 🛒</span>
+          <button onclick="toggleCarritoCliente()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#8a6040">×</button>
+        </div>
+        <div id="carrito-body" style="padding:14px 18px 24px"></div>
+      </div>
+    </div>
+    <!-- FAB -->
+    <a href="https://wa.me/5493816477520?text=Hola%20Panader%C3%ADa%20Olivia%2C%20quiero%20hacer%20un%20pedido%20%F0%9F%A5%96" target="_blank" style="position:fixed;bottom:24px;right:18px;width:54px;height:54px;background:linear-gradient(135deg,#1a7a2a,#25a040);border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:26px;box-shadow:0 4px 18px rgba(26,122,42,.7);z-index:90;animation:fabPulse 2.5s infinite">💬</a>
+  </div>`;
+}
+
+let clienteCat="todos";
+let clienteCarrito={};
+let clientePago="efectivo";
+let vistaActual="cliente"; // "cliente" | "admin"
+
+function chgClienteCarrito(id,delta){
+  clienteCarrito[id]=(clienteCarrito[id]||0)+delta;
+  if(clienteCarrito[id]<=0)delete clienteCarrito[id];
+  renderVistaCliente();
+  if(document.getElementById("carrito-modal").style.display==="flex")renderCarritoCliente();
+}
+
+function toggleCarritoCliente(){
+  const m=document.getElementById("carrito-modal");
+  if(!m)return;
+  const show=m.style.display!=="flex";
+  m.style.display=show?"flex":"none";
+  if(show)renderCarritoCliente();
+}
+
+function renderCarritoCliente(){
+  const entries=Object.entries(clienteCarrito);
+  const body=document.getElementById("carrito-body");
+  if(!body)return;
+  if(entries.length===0){body.innerHTML=`<div style="text-align:center;padding:30px 0;color:#8a6040"><div style="font-size:36px;margin-bottom:9px">🛒</div><div>Carrito vacío</div></div>`;return;}
+  const total=entries.reduce((a,[id,q])=>{const p=PRODS.find(x=>x.id===id);return a+(p?p.pMay*q:0);},0);
+  body.innerHTML=`
+    <input id="cli-nombre" placeholder="Tu nombre (opcional)" style="width:100%;background:#faf7f4;border:1px solid #e8d5bc;border-radius:6px;padding:8px 12px;color:#2a1505;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:12px">
+    <div style="font-size:9px;color:#c47a18;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:8px"><div style="flex:1;height:1px;background:rgba(196,122,26,.3)"></div>Productos<div style="flex:1;height:1px;background:rgba(196,122,26,.3)"></div></div>
+    ${entries.map(([id,q])=>{const p=PRODS.find(x=>x.id===id);if(!p)return'';return`
+    <div style="display:flex;border-bottom:1px solid #e8d5bc;padding:8px 0;align-items:center;gap:9px">
+      <img loading="lazy" src="${fs(p)}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.src='${FD.default}'">
+      <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#2a1505">${p.nom}</div><div style="font-size:10px;color:#c47a18">${$n(p.pMay)}/${p.uni}</div></div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <button onclick="chgClienteCarrito('${id}',-1)" style="background:#e8d5bc;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:13px;font-weight:700">−</button>
+        <span style="font-size:12px;color:#c47a18;font-weight:700;min-width:16px;text-align:center">${q}</span>
+        <button onclick="chgClienteCarrito('${id}',1)" style="background:#c47a18;color:#fff;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:13px;font-weight:700">+</button>
+      </div>
+      <span style="font-size:12px;color:#c47a18;font-weight:700;min-width:66px;text-align:right">${$n(p.pMay*q)}</span>
+    </div>`;}).join('')}
+    <div style="display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid #e8d5bc">
+      <span style="font-size:14px;color:#8a6040;font-weight:700">TOTAL</span>
+      <span style="font-size:19px;color:#c47a18;font-weight:900">${$n(total)}</span>
+    </div>
+    <div style="margin-bottom:13px">
+      <div style="font-size:9px;color:#8a6040;margin-bottom:8px;letter-spacing:.07em;text-transform:uppercase">Método de pago</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${MP.map(m=>`<button onclick="clientePago='${m.id}';renderCarritoCliente()" style="background:${clientePago===m.id?m.color+'22':'#faf7f4'};border:2px solid ${clientePago===m.id?m.color:'#e8d5bc'};border-radius:8px;padding:9px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+          <span style="font-size:19px">${m.icon}</span>
+          <span style="font-size:10px;font-weight:700;color:${clientePago===m.id?m.color:'#8a6040'}">${m.label}</span>
+        </button>`).join('')}
+      </div>
+    </div>
+    <a href="${armarMsgCliente(total)}" target="_blank" onclick="confirmarPedidoCliente()" style="display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#1a7a2a,#25a040);border-radius:10px;padding:14px;text-decoration:none">
+      <span style="font-size:22px">💬</span>
+      <div><div style="font-size:14px;font-weight:800;color:#fff">Confirmar por WhatsApp</div><div style="font-size:10px;color:#a0d4a8">Se abre con tu pedido listo</div></div>
+    </a>`;
+}
+
+function armarMsgCliente(total){
+  const nombre=document.getElementById("cli-nombre")?.value||"Cliente";
+  const m=getMp(clientePago);
+  let msg=`Hola Panadería Olivia 🥖
+
+*Pedido de:* ${nombre}
+
+`;
+  Object.entries(clienteCarrito).forEach(([id,q])=>{const p=PRODS.find(x=>x.id===id);msg+=`• ${p?.nom} × ${q} ${p?.uni} = ${$n(p.pMay*q)}
+`;});
+  msg+=`
+*Total:* ${$n(total)}
+*Pago:* ${m.icon} ${m.label}`;
+  // SAVE ORDER to PEDIDOS so admin can see it
+  const items=Object.entries(clienteCarrito).map(([pId,qty])=>({pId,qty,precio:PRODS.find(p=>p.id===pId)?.pMay||0}));
+  const newPed={id:"PED-"+String(PEDIDOS.length+46).padStart(4,"0"),cId:"CLIENTE",fecha:new Date().toISOString().split("T")[0],est:"pendiente",pago:clientePago,pagado:false,items,total,clienteNombre:nombre};
+  PEDIDOS.unshift(newPed);
+  return "https://wa.me/5493816477520?text="+encodeURIComponent(msg);
+}
+
+function confirmarPedidoCliente(){
+  setTimeout(()=>{clienteCarrito={};toggleCarritoCliente();renderVistaCliente();},1000);
+}
+
+function verDetalleCliente(id){
+  const p=PRODS.find(x=>x.id===id);if(!p)return;
+  const m=document.getElementById("carrito-modal");
+  // Use existing modal system
+  openModal(p.nom,`
+    <div style="border-radius:9px;overflow:hidden;height:200px;margin-bottom:13px">
+      <img src="${fs(p)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='${FD.default}'">
+    </div>
+    <div style="font-size:12px;color:#8a6040;margin-bottom:13px">${p.desc}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="text-align:center;background:#faf7f4;border-radius:7px;padding:11px">
+        <div style="font-size:9px;color:#8a6040;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Precio mayorista</div>
+        <div style="font-size:18px;color:#c47a18;font-weight:800">${$n(p.pMay)}</div>
+        <div style="font-size:10px;color:#8a6040">por ${p.uni}</div>
+      </div>
+      <div style="text-align:center;background:#faf7f4;border-radius:7px;padding:11px">
+        <div style="font-size:9px;color:#8a6040;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Categoría</div>
+        <div style="font-size:14px;color:#5a3010;font-weight:700">${p.cat}</div>
+      </div>
+    </div>
+    <button onclick="chgClienteCarrito('${p.id}',1);closeModal()" style="width:100%;background:linear-gradient(135deg,#c47a18,#d4912a);color:#fff;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">+ Agregar al carrito</button>`);
+}
+
+function showLogin(){
+  openModal("Acceso Administrador",`
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:44px;margin-bottom:8px">🥖</div>
+      <div style="font-size:13px;color:#8a6040">Ingresá la contraseña para acceder al panel</div>
+    </div>
+    <div style="margin-bottom:11px">
+      <input type="password" id="login-pass" placeholder="Contraseña" style="width:100%;background:#faf7f4;border:1px solid #e8d5bc;border-radius:6px;padding:9px 12px;color:#2a1505;font-size:13px;outline:none;box-sizing:border-box">
+    </div>
+    <div id="login-err" style="display:none;font-size:11px;color:#a83225;text-align:center;margin-bottom:9px">⚠ Contraseña incorrecta</div>
+    <button onclick="doLogin()" style="width:100%;background:linear-gradient(135deg,#c47a18,#d4912a);color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:9px">Ingresar al sistema</button>
+    <button onclick="closeModal()" style="width:100%;background:#faf7f4;border:1px solid #e8d5bc;color:#8a6040;border-radius:8px;padding:10px;font-size:13px;cursor:pointer">← Volver al catálogo</button>
+    <div style="text-align:center;margin-top:12px;font-size:10px;color:#b0906a">Clave demo: <span style="color:#c47a18;font-weight:700">olivia2026</span></div>`);
+}
+
+function doLogin(){
+  const pass=document.getElementById("login-pass")?.value;
+  if(pass==="olivia2026"){
+    closeModal();
+    vistaActual="admin";
+    document.getElementById("app-wrapper").innerHTML='<div id="app"></div>';
+    document.getElementById("app").innerHTML=document.getElementById("app").innerHTML||"";
+    // rebuild admin
+    location.reload=undefined;
+    initAdmin();
+  } else {
+    const e=document.getElementById("login-err");
+    if(e){e.style.display="block";setTimeout(()=>e.style.display="none",2000);}
+  }
+}
+
+function initAdmin(){
+  // show the full admin layout
+  document.getElementById("app-wrapper").innerHTML=`
+    <div id="app">
+      <div id="sidebar">
+        <div class="sb-logo"><div class="sb-logo-title">🥖 Panadería Olivia</div><div class="sb-logo-sub">Panel Admin</div></div>
+        <nav id="nav">
+          <button class="nav-btn active" onclick="goTab('dashboard')"><span class="ni">◈</span><span class="nl">Dashboard</span></button>
+          <button class="nav-btn" onclick="goTab('pedidos')"><span class="ni">🛒</span><span class="nl">Pedidos</span></button>
+          <button class="nav-btn" onclick="goTab('catalogo')"><span class="ni">📸</span><span class="nl">Catálogo</span></button>
+          <button class="nav-btn" onclick="goTab('clientes')"><span class="ni">👥</span><span class="nl">Clientes</span></button>
+          <button class="nav-btn" onclick="goTab('stock')"><span class="ni">📦</span><span class="nl">Stock</span></button>
+          <button class="nav-btn" onclick="goTab('reportes')"><span class="ni">📊</span><span class="nl">Reportes</span></button>
+          <button class="nav-btn" onclick="goTab('remitos')"><span class="ni">📄</span><span class="nl">Remitos</span></button>
+        </nav>
+        <div class="sb-footer">
+          <button class="btn btn-out btn-full" onclick="salirAlCatalogo()" style="margin-bottom:8px">← Vista cliente</button>
+          <button class="btn btn-full" onclick="resetDatos()" style="background:rgba(168,50,37,.15);border:1px solid rgba(168,50,37,.4);color:var(--red);margin-bottom:8px">🗑 Limpiar datos</button>
+          <div style="font-size:9px;color:var(--muted);text-align:center">v6 · Olivia SaaS</div>
+        </div>
+      </div>
+      <div id="main">
+        <div id="topbar">
+          <div style="display:flex;align-items:center;gap:12px">
+            <button onclick="toggleSidebar()" class="btn btn-out btn-icon">☰</button>
+            <span id="topbar-title" style="font-size:14px;font-weight:600">◈ Dashboard</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:7px;height:7px;border-radius:50%;background:var(--grn);box-shadow:0 0 5px var(--grn)"></div>
+            <span style="font-size:11px">Admin · Olivia</span>
+            <button class="btn btn-sm" onclick="salirAlCatalogo()" style="background:rgba(61,30,8,.1);border:1px solid #e8d5bc;color:#5a3010">← Catálogo</button>
+            <button class="btn btn-sm btn-red" onclick="resetDatos()">🗑 Reset</button>
+          </div>
+        </div>
+        <div id="content"></div>
+      </div>
+    </div>
+    <div id="bottomnav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(61,30,8,.97);backdrop-filter:blur(10px);border-top:1px solid #5a3010;z-index:60;justify-content:space-around;padding:6px 0 12px">
+      <button class="bnav-btn active" onclick="goTab('dashboard')"><span class="bi">◈</span><span class="bl">Inicio</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('pedidos')"><span class="bi">🛒</span><span class="bl">Pedidos</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('catalogo')"><span class="bi">📸</span><span class="bl">Catálogo</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('clientes')"><span class="bi">👥</span><span class="bl">Clientes</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('stock')"><span class="bi">📦</span><span class="bl">Stock</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('reportes')"><span class="bi">📊</span><span class="bl">Reportes</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('remitos')"><span class="bi">📄</span><span class="bl">Remitos</span><div class="bnav-dot"></div></button>
+    </div>
+    <div class="modal-bg" id="modal">
+      <div class="modal">
+        <div class="modal-head"><h3 id="modal-title"></h3><button class="modal-close" onclick="closeModal()">×</button></div>
+        <div class="modal-body" id="modal-body"></div>
+      </div>
+    </div>
+    <a id="fab" href="https://wa.me/5493816477520?text=Hola%20Panader%C3%ADa%20Olivia%2C%20quiero%20hacer%20un%20pedido%20%F0%9F%A5%96" target="_blank">💬</a>`;
+  vistaActual="admin";
+  goTab("dashboard");
+  // mobile
+  if(window.innerWidth<=768)document.getElementById("bottomnav").style.display="flex";
+  document.getElementById("modal").addEventListener("click",e=>{if(e.target===document.getElementById("modal"))closeModal();});
+}
+
+function salirAlCatalogo(){
+  vistaActual="cliente";
+  document.getElementById("app-wrapper").innerHTML='';
+  renderVistaCliente();
+}
+
+// ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-render();
+// Wrap entire app in a container
+document.body.insertAdjacentHTML('afterbegin','<div id="app-wrapper"></div>');
+// Move existing #app and #modal into wrapper
+const existingApp=document.getElementById("app");
+const existingModal=document.getElementById("modal");
+const existingFab=document.getElementById("fab");
+const existingToast=document.getElementById("toast");
+const existingBnav=document.getElementById("bottomnav");
+const wrapper=document.getElementById("app-wrapper");
+if(existingApp)wrapper.appendChild(existingApp);
+
+// Start with client view
+renderVistaCliente();
 </script>
 </body>
 </html>
