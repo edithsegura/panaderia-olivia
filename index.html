@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panadería Olivia — Sistema de Gestión</title>
+<style>
+:root{
+  --bg:#faf7f4;--card:#ffffff;--card2:#f5ede0;--side:#3d1e08;
+  --brd:#e8d5bc;--gold:#c47a18;--goldL:#d4912a;--goldD:#8a5a1a;
+  --cream:#3d1e08;--creamD:#5a3010;--txt:#2a1505;--muted:#8a6040;
+  --grn:#2d7a3a;--red:#a83225;--amb:#c47a1a;--blu:#2a6cb5;
+  --r:8px;
+}
+/* sidebar stays dark */
+#sidebar{background:#3d1e08!important;border-right:1px solid #5a3010!important;}
+#topbar{background:#3d1e08!important;border-bottom:1px solid #5a3010!important;}
+.nav-btn .nl{color:#c4a87a!important;}
+.nav-btn.active .nl{color:#e8b05a!important;}
+.nav-btn:hover{background:rgba(232,176,90,.15)!important;}
+.nav-btn.active{background:rgba(232,176,90,.2)!important;border-left-color:#e8b05a!important;}
+.sb-logo-title{color:#e8b05a!important;}
+.sb-logo-sub{color:#c4a87a!important;}
+#topbar #topbar-title{color:#f5e6c8!important;}
+#topbar span{color:#c4a87a!important;}
+#bottomnav{background:rgba(61,30,8,.97)!important;}
+.bnav-btn .bl{color:#c4a87a!important;}
+.bnav-btn.active .bl{color:#e8b05a!important;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+input,select,button,textarea{font-family:inherit;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px;}
+input::placeholder{color:var(--muted);}
+
+/* ── LAYOUT ─────────────────────────────────────── */
+#app{display:flex;height:100vh;overflow:hidden;}
+#sidebar{width:220px;background:var(--side);border-right:1px solid var(--brd);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s;}
+#sidebar.collapsed{width:0;overflow:hidden;}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#topbar{height:52px;background:var(--side);border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;}
+#content{flex:1;overflow-y:auto;padding:24px;}
+
+/* ── SIDEBAR ────────────────────────────────────── */
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--brd);}
+.sb-logo-title{font-size:13px;font-weight:700;color:var(--gold);}
+.sb-logo-sub{font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.1em;}
+#nav{flex:1;padding:8px 6px;overflow-y:auto;}
+.nav-btn{width:100%;display:flex;align-items:center;gap:9px;background:transparent;border:none;border-left:3px solid transparent;border-radius:0 6px 6px 0;padding:9px 11px;cursor:pointer;text-align:left;margin-bottom:2px;transition:all .15s;}
+.nav-btn:hover{background:rgba(212,145,42,.08);}
+.nav-btn.active{background:rgba(212,145,42,.14);border-left-color:var(--gold);}
+.nav-btn .ni{font-size:15px;}
+.nav-btn .nl{font-size:13px;color:var(--muted);}
+.nav-btn.active .nl{color:var(--gold);font-weight:700;}
+.sb-footer{padding:12px 14px;border-top:1px solid var(--brd);}
+
+/* ── COMPONENTS ─────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;}
+.divider{font-size:9px;color:var(--gold);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin:4px 0 12px;display:flex;align-items:center;gap:8px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(212,145,42,.3);}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+
+/* ── BUTTONS ────────────────────────────────────── */
+.btn{border:none;border-radius:var(--r);padding:9px 16px;font-size:13px;cursor:pointer;font-weight:600;transition:opacity .15s;}
+.btn:hover{opacity:.88;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--goldL));color:#1a0a02;}
+.btn-grn{background:#1a5c25;border:1px solid var(--grn);color:#7aba88;}
+.btn-out{background:var(--card2);border:1px solid var(--brd);color:var(--creamD);}
+.btn-red{background:rgba(168,50,37,.15);border:1px solid rgba(168,50,37,.4);color:var(--red);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.btn-full{width:100%;}
+.btn-icon{padding:7px 11px;font-size:14px;}
+
+/* ── INPUTS ─────────────────────────────────────── */
+.field{margin-bottom:11px;}
+.field label{display:block;font-size:9px;color:var(--muted);margin-bottom:4px;letter-spacing:.07em;text-transform:uppercase;}
+.field input,.field select,.field textarea{width:100%;background:#140c05;border:1px solid var(--brd);border-radius:6px;padding:8px 11px;color:var(--txt);font-size:13px;outline:none;}
+.field textarea{resize:vertical;min-height:60px;}
+
+/* ── TABLE ──────────────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:10px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--brd);}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(61,36,16,.5);font-size:13px;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+
+/* ── MODAL ──────────────────────────────────────── */
+.modal-bg{display:none;position:fixed;inset:0;background:#000000bb;z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.show{display:flex;}
+.modal{background:#1e1007;border:1px solid var(--brd);border-radius:12px;width:100%;max-width:540px;max-height:88vh;overflow-y:auto;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--brd);position:sticky;top:0;background:#1e1007;z-index:1;}
+.modal-head h3{color:var(--cream);font-size:15px;}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;line-height:1;}
+.modal-body{padding:16px 18px 24px;}
+
+/* ── TOAST ──────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;right:24px;background:#1a5c25;border:1px solid var(--grn);color:#7aba88;padding:11px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:500;display:none;white-space:nowrap;}
+
+/* ── BAR CHART ──────────────────────────────────── */
+.barchart{display:flex;align-items:flex-end;gap:5px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;min-height:4px;transition:height .4s;}
+.bar-lbl{font-size:8px;color:var(--muted);white-space:nowrap;}
+
+/* ── PROG BAR ───────────────────────────────────── */
+.prog{height:4px;background:var(--brd);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:2px;}
+
+/* ── KPI ────────────────────────────────────────── */
+.kpi{text-align:center;padding:14px 10px;}
+.kpi .kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.kpi .kpi-val{font-size:22px;font-weight:800;}
+.kpi .kpi-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ── PROD CARD ──────────────────────────────────── */
+.prod-card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .2s;}
+.prod-card:hover{border-color:var(--goldD);}
+.prod-img{width:100%;height:140px;object-fit:cover;background:#0d0806;display:block;}
+.prod-body{padding:10px 11px 12px;}
+
+/* ── PAGO SELECTOR ──────────────────────────────── */
+.pago-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.pago-btn{background:#140c05;border:2px solid var(--brd);border-radius:var(--r);padding:10px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;}
+.pago-btn.active{background:rgba(42,108,181,.2);border-color:var(--blu);}
+.pago-btn .pi{font-size:20px;}
+.pago-btn .pl{font-size:11px;font-weight:700;color:var(--muted);}
+.pago-btn.active .pl{color:var(--blu);}
+
+/* ── FOTO UPLOADER ──────────────────────────────── */
+.foto-preview{position:relative;border-radius:var(--r);overflow:hidden;height:120px;margin-bottom:8px;}
+.foto-preview img{width:100%;height:100%;object-fit:cover;}
+.foto-drop{background:#140c05;border:2px dashed var(--brd);border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;transition:all .2s;}
+.foto-drop:hover,.foto-drop.drag{background:var(--card2);border-color:var(--gold);}
+.foto-tabs{display:flex;border-radius:6px;overflow:hidden;border:1px solid var(--brd);margin-bottom:10px;}
+.foto-tab{flex:1;background:#140c05;border:none;padding:7px 4px;font-size:10px;color:var(--muted);cursor:pointer;transition:all .15s;}
+.foto-tab.active{background:var(--card2);color:var(--gold);font-weight:700;}
+
+/* ── FAB ────────────────────────────────────────── */
+#fab{position:fixed;bottom:24px;right:24px;width:54px;height:54px;background:linear-gradient(135deg,#1a7a2a,#25a040);border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:90;text-decoration:none;font-size:26px;box-shadow:0 4px 20px rgba(26,122,42,.7);animation:fabPulse 2.5s infinite;}
+@keyframes fabPulse{0%{box-shadow:0 4px 20px rgba(26,122,42,.8),0 0 0 0 rgba(26,122,42,.5);}70%{box-shadow:0 4px 20px rgba(26,122,42,.8),0 0 0 12px rgba(26,122,42,0);}100%{box-shadow:0 4px 20px rgba(26,122,42,.8),0 0 0 0 rgba(26,122,42,0);}}
+
+/* ── MOBILE ─────────────────────────────────────── */
+@media(max-width:768px){
+  #sidebar{display:none;}
+  #content{padding:14px 12px 90px;}
+  .grid4{grid-template-columns:1fr 1fr;}
+  .grid3{grid-template-columns:1fr 1fr;}
+  #bottomnav{display:flex!important;}
+  .modal-bg.show{align-items:flex-end;padding:0;}
+  .modal{border-radius:14px 14px 0 0;max-height:90vh;}
+}
+#bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(36,21,9,.97);backdrop-filter:blur(10px);border-top:1px solid var(--brd);z-index:60;justify-content:space-around;padding:6px 0 12px;}
+.bnav-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:3px 6px;min-width:44px;}
+.bnav-btn .bi{font-size:16px;}
+.bnav-btn .bl{font-size:8px;color:var(--muted);}
+.bnav-btn.active .bl{color:var(--gold);font-weight:700;}
+.bnav-dot{width:12px;height:2px;background:var(--gold);border-radius:1px;margin-top:1px;display:none;}
+.bnav-btn.active .bnav-dot{display:block;}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- FAB WhatsApp -->
+<a id="fab" href="https://wa.me/5493816477520?text=Hola%20Panader%C3%ADa%20Olivia%2C%20quiero%20hacer%20un%20pedido%20%F0%9F%A5%96" target="_blank">💬</a>
+
+<!-- APP -->
+<!-- admin layout (shown after login) -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">🥖 Panadería Olivia</div>
+      <div class="sb-logo-sub">Panel Admin</div>
+    </div>
+    <nav id="nav">
+      <button class="nav-btn active" onclick="goTab('dashboard')"><span class="ni">◈</span><span class="nl">Dashboard</span></button>
+      <button class="nav-btn" onclick="goTab('pedidos')"><span class="ni">🛒</span><span class="nl">Pedidos</span></button>
+      <button class="nav-btn" onclick="goTab('catalogo')"><span class="ni">📸</span><span class="nl">Catálogo</span></button>
+      <button class="nav-btn" onclick="goTab('clientes')"><span class="ni">👥</span><span class="nl">Clientes</span></button>
+      <button class="nav-btn" onclick="goTab('stock')"><span class="ni">📦</span><span class="nl">Stock</span></button>
+      <button class="nav-btn" onclick="goTab('reportes')"><span class="ni">📊</span><span class="nl">Reportes</span></button>
+      <button class="nav-btn" onclick="goTab('remitos')"><span class="ni">📄</span><span class="nl">Remitos</span></button>
+    </nav>
+    <div class="sb-footer">
+      <button class="btn btn-out btn-full" onclick="resetDatos()" style="margin-bottom:8px;color:var(--red);border-color:rgba(168,50,37,.4);background:rgba(168,50,37,.1);">🗑 Limpiar datos</button>
+      <div style="font-size:9px;color:var(--muted);text-align:center;">v6 · Olivia SaaS</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button onclick="toggleSidebar()" class="btn btn-out btn-icon">☰</button>
+        <span id="topbar-title" style="font-size:14px;color:var(--creamD);font-weight:600;">◈ Dashboard</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:7px;height:7px;border-radius:50%;background:var(--grn);box-shadow:0 0 6px var(--grn);"></div>
+        <span style="font-size:11px;color:var(--muted);">Admin · Olivia</span>
+        <button class="btn btn-out btn-sm" onclick="resetDatos()" style="color:var(--red);border-color:rgba(168,50,37,.4);">🗑 Reset</button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<div id="bottomnav">
+  <button class="bnav-btn active" onclick="goTab('dashboard')"><span class="bi">◈</span><span class="bl">Inicio</span><div class="bnav-dot"></div></button>
+  <button class="bnav-btn" onclick="goTab('pedidos')"><span class="bi">🛒</span><span class="bl">Pedidos</span><div class="bnav-dot"></div></button>
+  <button class="bnav-btn" onclick="goTab('catalogo')"><span class="bi">📸</span><span class="bl">Catálogo</span><div class="bnav-dot"></div></button>
+  <button class="bnav-btn" onclick="goTab('clientes')"><span class="bi">👥</span><span class="bl">Clientes</span><div class="bnav-dot"></div></button>
+  <button class="bnav-btn" onclick="goTab('stock')"><span class="bi">📦</span><span class="bl">Stock</span><div class="bnav-dot"></div></button>
+  <button class="bnav-btn" onclick="goTab('reportes')"><span class="bi">📊</span><span class="bl">Reportes</span><div class="bnav-dot"></div></button>
+  <button class="bnav-btn" onclick="goTab('remitos')"><span class="bi">📄</span><span class="bl">Remitos</span><div class="bnav-dot"></div></button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-title"></h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const FD={Panes:"https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&q=70",Facturas:"https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&q=70",Tortas:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&q=70",Bollería:"https://images.unsplash.com/photo-1620476214170-1d8080f65cdb?w=300&q=70",Pizzas:"https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&q=70",Lactal:"https://images.unsplash.com/photo-1598373182133-52452f7691ef?w=300&q=70",default:"https://images.unsplash.com/photo-1549931319-a545dcf3bc7c?w=300&q=70"};
+const MP=[{id:"efectivo",icon:"💵",label:"Efectivo",color:"#2d7a3a"},{id:"transferencia",icon:"📲",label:"Transferencia",color:"#2a6cb5"},{id:"tarjeta",icon:"💳",label:"Tarjeta",color:"#7a3db5"},{id:"cuenta",icon:"📋",label:"Cta. Cte.",color:"#c47a1a"}];
+const EC={pendiente:"#c47a1a",confirmado:"#2a6cb5",preparando:"#7a3db5",despachado:"#c46a1a",entregado:"#2d7a3a",cancelado:"#a83225"};
+const SC={VIP:"#d4912a",activo:"#2d7a3a",inactivo:"#7a5c38",potencial:"#2a6cb5"};
+
+let CLIENTES=[
+  {id:"C001",nombre:"Almacén El Ombú",cuit:"20-28765432-1",wsp:"3815100001",seg:"VIP",deuda:185000,ultima:"2026-05-29",acum:3820000},
+  {id:"C002",nombre:"Buffet Los Sauces",cuit:"30-69876543-2",wsp:"3815100002",seg:"activo",deuda:0,ultima:"2026-05-28",acum:960000},
+  {id:"C003",nombre:"Supermercado Ñorco",cuit:"30-71234567-8",wsp:"3815100003",seg:"VIP",deuda:310000,ultima:"2026-05-30",acum:7400000},
+  {id:"C004",nombre:"Cafetería Central",cuit:"27-32456789-0",wsp:"3815100004",seg:"inactivo",deuda:0,ultima:"2026-03-10",acum:280000},
+  {id:"C005",nombre:"Hotel Tucumán Palace",cuit:"30-55567890-4",wsp:"3815100005",seg:"VIP",deuda:0,ultima:"2026-05-30",acum:6800000},
+];
+let PRODS=[
+  {id:"P001",cod:"PAN-001",cat:"Panes",nom:"Pan Francés",desc:"Baguette artesanal, cocción doble",pMay:920,pMin:1300,stk:520,sMin:100,est:"disponible",uni:"kg",foto:null},
+  {id:"P002",cod:"FAC-001",cat:"Facturas",nom:"Medialunas de Manteca",desc:"Docena de medialunas clásicas",pMay:4500,pMin:6000,stk:90,sMin:20,est:"disponible",uni:"docena",foto:null},
+  {id:"P003",cod:"FAC-002",cat:"Facturas",nom:"Facturas Surtidas",desc:"Cañoncitos, vigilantes, cuernitos",pMay:4000,pMin:5200,stk:15,sMin:20,est:"disponible",uni:"docena",foto:null},
+  {id:"P004",cod:"TOR-001",cat:"Tortas",nom:"Torta de Cumpleaños",desc:"Decorada, relleno a elección",pMay:19500,pMin:25000,stk:6,sMin:3,est:"disponible",uni:"unidad",foto:null},
+  {id:"P005",cod:"LAC-001",cat:"Lactal",nom:"Pan Lactal Grande",desc:"Molde grande 24 rebanadas",pMay:2200,pMin:2900,stk:55,sMin:15,est:"disponible",uni:"unidad",foto:null},
+  {id:"P006",cod:"PIZ-001",cat:"Pizzas",nom:"Pre-pizza Grande",desc:"Base 30cm lista para hornear",pMay:3200,pMin:4500,stk:40,sMin:10,est:"disponible",uni:"unidad",foto:null},
+  {id:"P007",cod:"PIZ-002",cat:"Pizzas",nom:"Pre-pizza Chica",desc:"Base 20cm lista para hornear",pMay:1800,pMin:2500,stk:60,sMin:10,est:"disponible",uni:"unidad",foto:null},
+  {id:"P008",cod:"BOL-001",cat:"Bollería",nom:"Berlinesas",desc:"Con dulce de leche o mermelada",pMay:5500,pMin:7200,stk:0,sMin:10,est:"sin stock",uni:"docena",foto:null},
+  {id:"P009",cod:"PAN-002",cat:"Panes",nom:"Pan Integral",desc:"Con semillas, sin aditivos",pMay:1200,pMin:1600,stk:140,sMin:30,est:"disponible",uni:"kg",foto:null},
+  {id:"P010",cod:"TOR-002",cat:"Tortas",nom:"Budín de Pan",desc:"Receta tradicional tucumana",pMay:7000,pMin:9000,stk:22,sMin:5,est:"disponible",uni:"unidad",foto:null},
+];
+let PEDIDOS=[
+  {id:"PED-0045",cId:"C003",fecha:"2026-05-30",est:"despachado",pago:"transferencia",pagado:true,items:[{pId:"P001",qty:100,precio:920},{pId:"P002",qty:50,precio:4500}],total:317000},
+  {id:"PED-0044",cId:"C005",fecha:"2026-05-30",est:"entregado",pago:"efectivo",pagado:true,items:[{pId:"P002",qty:20,precio:4500},{pId:"P005",qty:15,precio:2200}],total:123000},
+  {id:"PED-0043",cId:"C002",fecha:"2026-05-29",est:"confirmado",pago:"tarjeta",pagado:false,items:[{pId:"P001",qty:40,precio:920},{pId:"P009",qty:20,precio:1200}],total:60800},
+  {id:"PED-0042",cId:"C001",fecha:"2026-05-28",est:"entregado",pago:"cuenta",pagado:false,items:[{pId:"P006",qty:30,precio:3200},{pId:"P010",qty:10,precio:7000}],total:166000},
+  {id:"PED-0041",cId:"C003",fecha:"2026-05-27",est:"entregado",pago:"efectivo",pagado:true,items:[{pId:"P001",qty:80,precio:920},{pId:"P005",qty:25,precio:2200}],total:128600},
+];
+const VS=[{d:"Lun",v:310},{d:"Mar",v:490},{d:"Mié",v:285},{d:"Jue",v:620},{d:"Vie",v:875},{d:"Sáb",v:1180},{d:"Hoy",v:892}];
+const VM=[{d:"Ene",v:7800},{d:"Feb",v:8600},{d:"Mar",v:7400},{d:"Abr",v:9800},{d:"May",v:10600}];
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+const $n=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(n);
+const fN=n=>new Intl.NumberFormat("es-AR").format(n);
+const fs=p=>p.foto||(FD[p.cat]||FD.default);
+const getMp=id=>MP.find(m=>m.id===id)||MP[0];
+const getCl=id=>CLIENTES.find(c=>c.id===id)||{nombre:"—",cuit:"",wsp:""};
+const getPr=id=>PRODS.find(p=>p.id===id)||{nom:"—",uni:"",cat:""};
+
+let currentTab="dashboard";
+let carrito={};
+let pagoActual="efectivo";
+
+function toast(msg,ms=2500){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",ms);}
+
+function bdg(label,color){return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${label}</span>`;}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+const TAB_TITLES={"dashboard":"◈ Dashboard","pedidos":"🛒 Pedidos","catalogo":"📸 Catálogo","clientes":"👥 Clientes","stock":"📦 Stock","reportes":"📊 Reportes","remitos":"📄 Remitos"};
+
+function goTab(tab){
+  currentTab=tab;
+  document.querySelectorAll(".nav-btn").forEach((b,i)=>b.classList.toggle("active",["dashboard","pedidos","catalogo","clientes","stock","reportes","remitos"][i]===tab));
+  document.querySelectorAll(".bnav-btn").forEach((b,i)=>b.classList.toggle("active",["dashboard","pedidos","catalogo","clientes","stock","reportes","remitos"][i]===tab));
+  document.getElementById("topbar-title").textContent=TAB_TITLES[tab]||tab;
+  render();
+}
+
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("collapsed");}
+
+function render(){
+  const c=document.getElementById("content");
+  if(currentTab==="dashboard") c.innerHTML=renderDash();
+  else if(currentTab==="pedidos") c.innerHTML=renderPedidos();
+  else if(currentTab==="catalogo") c.innerHTML=renderCatalogo();
+  else if(currentTab==="clientes") c.innerHTML=renderClientes();
+  else if(currentTab==="stock") c.innerHTML=renderStock();
+  else if(currentTab==="reportes") c.innerHTML=renderReportes();
+  else if(currentTab==="remitos") c.innerHTML=renderRemitos();
+  bindEvents();
+}
+
+// ═══════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════
+function openModal(title,body){
+  document.getElementById("modal-title").textContent=title;
+  document.getElementById("modal-body").innerHTML=body;
+  document.getElementById("modal").classList.add("show");
+  bindModalEvents();
+}
+function closeModal(){document.getElementById("modal").classList.remove("show");}
+
+// ═══════════════════════════════════════════════
+// FOTO UPLOADER HTML
+// ═══════════════════════════════════════════════
+function fotoUploaderHtml(currentFoto,fieldId){
+  return `
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:9px;color:var(--muted);margin-bottom:6px;letter-spacing:.07em;text-transform:uppercase">Foto del producto</label>
+      ${currentFoto?`<div style="position:relative;border-radius:8px;overflow:hidden;height:110px;margin-bottom:8px;">
+        <img src="${currentFoto}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${FD.default}'">
+        <button onclick="clearFoto('${fieldId}')" style="position:absolute;top:5px;right:5px;background:#000c;border:none;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;cursor:pointer;">× Quitar</button>
+      </div>`:''}
+      <div class="foto-tabs">
+        <button class="foto-tab active" onclick="switchFotoTab(this,'archivo','${fieldId}')">📁 Archivo</button>
+        <button class="foto-tab" onclick="switchFotoTab(this,'url','${fieldId}')">🔗 URL</button>
+      </div>
+      <div id="ft-archivo-${fieldId}">
+        <div class="foto-drop" onclick="document.getElementById('foto-file-${fieldId}').click()">
+          <div style="font-size:22px;margin-bottom:4px">📂</div>
+          <div style="font-size:12px;font-weight:600;color:var(--creamD)">Elegir foto del dispositivo</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:2px">JPG, PNG, WEBP · máx 5 MB</div>
+        </div>
+        <input type="file" id="foto-file-${fieldId}" accept="image/*" style="display:none" onchange="loadFotoFile(this,'${fieldId}')">
+      </div>
+      <div id="ft-url-${fieldId}" style="display:none">
+        <div style="display:flex;gap:8px">
+          <input id="foto-url-${fieldId}" type="text" placeholder="https://... enlace directo" style="flex:1;background:#140c05;border:1px solid var(--brd);border-radius:6px;padding:8px 10px;color:var(--txt);font-size:12px;outline:none">
+          <button onclick="applyFotoUrl('${fieldId}')" class="btn btn-gold" style="padding:8px 12px;font-size:12px">Usar</button>
+        </div>
+      </div>
+      <input type="hidden" id="foto-data-${fieldId}" value="${currentFoto||''}">
+    </div>`;
+}
+
+function switchFotoTab(btn,tab,fid){
+  btn.closest('.foto-tabs').querySelectorAll('.foto-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ft-archivo-'+fid).style.display=tab==='archivo'?'':'none';
+  document.getElementById('ft-url-'+fid).style.display=tab==='url'?'':'none';
+}
+function loadFotoFile(input,fid){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{document.getElementById('foto-data-'+fid).value=e.target.result;render();}; // re-render to show preview — actually just update preview
+  r.onload=e=>{
+    const v=e.target.result;
+    document.getElementById('foto-data-'+fid).value=v;
+    // show preview
+    const ft=document.getElementById('ft-archivo-'+fid);
+    ft.insertAdjacentHTML('beforebegin',`<div id="foto-prev-${fid}" style="position:relative;border-radius:8px;overflow:hidden;height:110px;margin-bottom:8px;"><img src="${v}" style="width:100%;height:100%;object-fit:cover;"><button onclick="clearFotoPreview('${fid}')" style="position:absolute;top:5px;right:5px;background:#000c;border:none;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;cursor:pointer;">× Quitar</button></div>`);
+  };
+  r.readAsDataURL(file);
+}
+function applyFotoUrl(fid){
+  const url=document.getElementById('foto-url-'+fid).value.trim();
+  if(!url)return;
+  document.getElementById('foto-data-'+fid).value=url;
+  const ft=document.getElementById('ft-url-'+fid);
+  const prev=document.getElementById('foto-prev-'+fid);
+  if(prev)prev.remove();
+  ft.insertAdjacentHTML('beforebegin',`<div id="foto-prev-${fid}" style="position:relative;border-radius:8px;overflow:hidden;height:110px;margin-bottom:8px;"><img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='${FD.default}'"><button onclick="clearFotoPreview('${fid}')" style="position:absolute;top:5px;right:5px;background:#000c;border:none;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;cursor:pointer;">× Quitar</button></div>`);
+}
+function clearFotoPreview(fid){
+  const prev=document.getElementById('foto-prev-'+fid);if(prev)prev.remove();
+  document.getElementById('foto-data-'+fid).value='';
+}
+function clearFoto(fid){clearFotoPreview(fid);}
+
+function getFotoValue(fid){
+  const el=document.getElementById('foto-data-'+fid);
+  return el?el.value||null:null;
+}
+
+// ═══════════════════════════════════════════════
+// PAGO SELECTOR
+// ═══════════════════════════════════════════════
+function pagoSelectorHtml(current){
+  return `<div style="margin-bottom:14px">
+    <div style="font-size:9px;color:var(--muted);margin-bottom:8px;letter-spacing:.07em;text-transform:uppercase">Método de pago</div>
+    <div class="pago-grid" id="pago-sel">
+      ${MP.map(m=>`<button class="pago-btn ${current===m.id?'active':''}" onclick="selectPago('${m.id}')" style="${current===m.id?`background:${m.color}22;border-color:${m.color}`:''}; " data-pago="${m.id}">
+        <span class="pi">${m.icon}</span><span class="pl" style="${current===m.id?`color:${m.color}`:''}"> ${m.label}</span>
+      </button>`).join('')}
+    </div>
+  </div>`;
+}
+function selectPago(id){
+  pagoActual=id;
+  document.querySelectorAll('.pago-btn').forEach(b=>{
+    const m=MP.find(x=>x.id===b.dataset.pago);
+    const active=b.dataset.pago===id;
+    b.className='pago-btn'+(active?' active':'');
+    b.style.background=active?m.color+'22':'#140c05';
+    b.style.borderColor=active?m.color:'var(--brd)';
+    b.querySelector('.pl').style.color=active?m.color:'var(--muted)';
+  });
+}
+
+// ═══════════════════════════════════════════════
+// BAR CHART
+// ═══════════════════════════════════════════════
+function barChart(data,color='var(--gold)',h=80){
+  const max=Math.max(...data.map(d=>d.v));
+  return `<div class="barchart" style="height:${h}px">
+    ${data.map((d,i)=>`<div class="bar-col">
+      <div class="bar-fill" style="height:${Math.round((d.v/max)*(h-16))}px;background:${i===data.length-1?color:color+'66'}"></div>
+      <span class="bar-lbl">${d.d}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDash(){
+  const pend=PEDIDOS.filter(p=>["pendiente","confirmado","preparando"].includes(p.est)).length;
+  const porM=MP.map(m=>({...m,total:PEDIDOS.filter(p=>p.pago===m.id&&p.pagado).reduce((a,p)=>a+p.total,0)})).filter(m=>m.total>0);
+  return `
+    <div style="background:linear-gradient(135deg,#3d1e08,#1a0c04);border:1px solid var(--brd);border-radius:12px;padding:20px 24px;margin-bottom:16px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;background:rgba(212,145,42,.1)"></div>
+      <div style="font-size:9px;color:var(--goldD);letter-spacing:.1em;text-transform:uppercase">Panel de control</div>
+      <div style="font-size:22px;font-weight:900;color:var(--cream);margin-top:3px">Buenos días 👋</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${pend>0?pend+' pedidos en curso · ':""}Panadería Olivia · Tucumán</div>
+    </div>
+    <div class="grid4" style="margin-bottom:16px">
+      ${[{l:"Ventas hoy",v:$n(892000),c:"var(--gold)",s:"+12% vs ayer"},{l:"Pedidos hoy",v:PEDIDOS.filter(p=>p.fecha==="2026-05-30").length,c:"var(--goldL)",s:pend+" en curso"},{l:"Ticket prom.",v:$n(127000),c:"var(--creamD)"},{l:"Margen mayo",v:"38%",c:"var(--grn)"}].map(k=>`
+      <div class="card kpi"><div class="kpi-lbl">${k.l}</div><div class="kpi-val" style="color:${k.c}">${k.v}</div>${k.s?`<div class="kpi-sub">${k.s}</div>`:''}</div>`).join('')}
+    </div>
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="card">
+        <div class="divider">Ventas semana</div>
+        ${barChart(VS)}
+      </div>
+      <div class="card">
+        <div class="divider">Cobros por método</div>
+        ${porM.length===0?'<div style="font-size:12px;color:var(--muted);text-align:center;padding:8px 0">Sin cobros registrados</div>':''}
+        ${porM.map(m=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--brd)">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:17px">${m.icon}</span><span style="font-size:13px;font-weight:600">${m.label}</span></div>
+          <span style="font-size:13px;color:${m.color};font-weight:700">${$n(m.total)}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="divider">Últimos pedidos</div>
+      ${PEDIDOS.slice(0,6).map(p=>{const cl=getCl(p.cId);const m=getMp(p.pago);return`
+        <div style="padding:9px 0;border-bottom:1px solid var(--brd)">
+          <div style="display:flex;justify-content:space-between">
+            <div><div style="font-size:13px;font-weight:600">${cl.nombre}</div><div style="font-size:9px;color:var(--muted)">${p.id} · ${p.fecha}</div></div>
+            <div style="text-align:right"><div style="font-size:14px;color:var(--gold);font-weight:700">${$n(p.total)}</div>${bdg(p.est,EC[p.est])}</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px"><span style="font-size:10px;color:${m.color}">${m.icon} ${m.label}</span>${bdg(p.pagado?"✓ Pagado":"Pdte.pago",p.pagado?"#2d7a3a":"#c47a1a")}</div>
+        </div>`}).join('')}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// CATÁLOGO
+// ═══════════════════════════════════════════════
+let catFiltro="todos";
+let catVista="grilla";
+
+function renderCatalogo(){
+  const cats=["todos",...new Set(PRODS.map(p=>p.cat))];
+  const lista=catFiltro==="todos"?PRODS:PRODS.filter(p=>p.cat===catFiltro);
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:20px;font-weight:800;color:var(--cream)">Catálogo</div><div style="font-size:10px;color:var(--muted)">${PRODS.length} productos</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-out btn-icon" onclick="catVista=catVista==='grilla'?'lista':'grilla';render()">${catVista==="grilla"?"☰":"⊞"}</button>
+        <button class="btn btn-gold" onclick="openNuevoProd()">+ Agregar</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:13px;overflow-x:auto;padding-bottom:3px">
+      ${cats.map(c=>`<button onclick="catFiltro='${c}';render()" style="background:${catFiltro===c?"var(--gold)":"transparent"};color:${catFiltro===c?"#1a0a02":"var(--muted)"};border:1px solid ${catFiltro===c?"var(--gold)":"var(--brd)"};border-radius:20px;padding:5px 13px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;flex-shrink:0">${c}</button>`).join('')}
+    </div>
+    ${catVista==="grilla"?`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      ${lista.map(p=>{const ss=p.stk===0,al=p.stk<=p.sMin&&p.stk>0;return`
+        <div class="prod-card" onclick="openDetalleProd('${p.id}')" style="border-color:${ss?"rgba(168,50,37,.5)":al?"rgba(196,122,26,.5)":"var(--brd)"}">
+          <div style="position:relative">
+            <img loading="lazy" src="${fs(p)}" alt="${p.nom}" class="prod-img" onerror="this.src='${FD.default}'">
+            <div style="position:absolute;top:6px;right:6px">${bdg(p.est,ss?"#a83225":al?"#c47a1a":"#2d7a3a")}</div>
+          </div>
+          <div class="prod-body">
+            <div style="font-size:9px;color:var(--muted);margin-bottom:2px">${p.cat}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.2;margin-bottom:7px">${p.nom}</div>
+            <div style="font-size:14px;color:var(--gold);font-weight:800">${$n(p.pMay)}</div>
+            <div style="font-size:9px;color:var(--muted)">may. · ${p.uni}</div>
+          </div>
+        </div>`}).join('')}
+    </div>`:`
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${lista.map(p=>{const ss=p.stk===0,al=p.stk<=p.sMin&&p.stk>0;return`
+        <div onclick="openDetalleProd('${p.id}')" style="display:flex;background:var(--card);border:1px solid ${ss?"rgba(168,50,37,.5)":al?"rgba(196,122,26,.5)":"var(--brd)"};border-radius:var(--r);overflow:hidden;cursor:pointer">
+          <img loading="lazy" src="${fs(p)}" alt="${p.nom}" style="width:80px;flex-shrink:0;object-fit:cover;" onerror="this.src='${FD.default}'">
+          <div style="padding:11px 13px;flex:1">
+            <div style="font-size:9px;color:var(--muted)">${p.cat} · ${p.cod}</div>
+            <div style="font-size:14px;font-weight:700;color:var(--txt);margin-top:2px">${p.nom}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${p.desc}</div>
+            <div style="display:flex;justify-content:space-between;margin-top:7px">
+              <span style="font-size:14px;color:var(--gold);font-weight:800">${$n(p.pMay)}</span>
+              ${bdg(p.est,ss?"#a83225":al?"#c47a1a":"#2d7a3a")}
+            </div>
+          </div>
+        </div>`}).join('')}
+    </div>`}`;
+}
+
+function openDetalleProd(id){
+  const p=PRODS.find(x=>x.id===id);if(!p)return;
+  openModal(p.nom,`
+    <div style="border-radius:9px;overflow:hidden;height:190px;margin-bottom:13px">
+      <img src="${fs(p)}" alt="${p.nom}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='${FD.default}'">
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:13px">${p.desc}</div>
+    <div class="grid3" style="margin-bottom:14px">
+      <div style="text-align:center;background:var(--bg);border-radius:7px;padding:10px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">May.</div><div style="font-size:13px;font-weight:700;color:var(--gold)">${$n(p.pMay)}</div></div>
+      <div style="text-align:center;background:var(--bg);border-radius:7px;padding:10px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Min.</div><div style="font-size:13px;font-weight:700;color:var(--creamD)">${$n(p.pMin)}</div></div>
+      <div style="text-align:center;background:var(--bg);border-radius:7px;padding:10px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Stock</div><div style="font-size:13px;font-weight:700;color:${p.stk<=p.sMin?"var(--amb)":"var(--txt)"}">${fN(p.stk)} ${p.uni}</div></div>
+    </div>
+    <div class="grid2">
+      <button class="btn btn-out btn-full" onclick="openEditProd('${p.id}')">✏️ Editar</button>
+      <button class="btn btn-full" style="background:transparent;border:1px solid var(--red);color:var(--red)" onclick="deleteProd('${p.id}')">🗑 Eliminar</button>
+    </div>`);
+}
+
+function formProd(p){
+  const fid="prod";
+  return `
+    ${fotoUploaderHtml(p?p.foto:null,fid)}
+    <div class="field"><label>Nombre</label><input id="p-nom" value="${p?p.nom:''}"></div>
+    <div class="field"><label>Descripción</label><input id="p-desc" value="${p?p.desc:''}"></div>
+    <div class="grid2">
+      <div class="field"><label>Categoría</label><select id="p-cat">
+        ${["Panes","Facturas","Tortas","Bollería","Pizzas","Lactal","Otro"].map(c=>`<option value="${c}" ${p&&p.cat===c?"selected":""}>${c}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Unidad</label><select id="p-uni">
+        ${["kg","unidad","docena","paquete"].map(u=>`<option value="${u}" ${p&&p.uni===u?"selected":""}>${u}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Precio mayorista $</label><input type="number" id="p-pmay" value="${p?p.pMay:''}"></div>
+      <div class="field"><label>Precio minorista $</label><input type="number" id="p-pmin" value="${p?p.pMin:''}"></div>
+      <div class="field"><label>Stock</label><input type="number" id="p-stk" value="${p?p.stk:''}"></div>
+      <div class="field"><label>Stock mínimo</label><input type="number" id="p-smin" value="${p?p.sMin:''}"></div>
+    </div>`;
+}
+
+function openNuevoProd(){
+  openModal("Nuevo Producto",formProd(null)+`<button class="btn btn-gold btn-full" style="margin-top:4px" onclick="saveProd(null)">💾 Guardar</button>`);
+}
+function openEditProd(id){
+  const p=PRODS.find(x=>x.id===id);
+  closeModal();
+  setTimeout(()=>openModal("Editar: "+p.nom,formProd(p)+`<button class="btn btn-gold btn-full" style="margin-top:4px" onclick="saveProd('${id}')">💾 Guardar cambios</button>`),50);
+}
+function saveProd(editId){
+  const nom=document.getElementById("p-nom").value.trim();if(!nom)return;
+  const d={nom,desc:document.getElementById("p-desc").value,cat:document.getElementById("p-cat").value,uni:document.getElementById("p-uni").value,pMay:+document.getElementById("p-pmay").value,pMin:+document.getElementById("p-pmin").value,stk:+document.getElementById("p-stk").value,sMin:+document.getElementById("p-smin").value,foto:getFotoValue("prod")};
+  d.est=d.stk>0?"disponible":"sin stock";
+  if(editId){Object.assign(PRODS.find(p=>p.id===editId),d);toast("✓ Producto actualizado");}
+  else{d.id="P"+String(PRODS.length+1).padStart(3,"0");d.cod="PROD-"+String(PRODS.length+1).padStart(3,"0");PRODS.push(d);toast("✓ Producto creado");}
+  closeModal();render();
+}
+function deleteProd(id){
+  if(!confirm("¿Eliminar este producto?"))return;
+  PRODS=PRODS.filter(p=>p.id!==id);closeModal();toast("Producto eliminado");render();
+}
+
+// ═══════════════════════════════════════════════
+// PEDIDOS
+// ═══════════════════════════════════════════════
+let pedFiltro="todos";
+let pedCarrito={};
+
+function renderPedidos(){
+  const lista=pedFiltro==="todos"?PEDIDOS:PEDIDOS.filter(p=>p.est===pedFiltro);
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:20px;font-weight:800;color:var(--cream)">Pedidos</div><div style="font-size:10px;color:var(--muted)">${PEDIDOS.length} total</div></div>
+      <button class="btn btn-gold" onclick="openNuevoPed()">+ Nuevo</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:13px;overflow-x:auto;padding-bottom:3px">
+      ${["todos","pendiente","confirmado","preparando","despachado","entregado"].map(e=>`<button onclick="pedFiltro='${e}';render()" style="background:${pedFiltro===e?(EC[e]||"var(--gold)"):"transparent"};color:${pedFiltro===e?"#fff":"var(--muted)"};border:1px solid ${pedFiltro===e?(EC[e]||"var(--gold)"):"var(--brd)"};border-radius:20px;padding:5px 11px;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;text-transform:capitalize">${e}</button>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      ${lista.map(p=>{const cl=getCl(p.cId);const m=getMp(p.pago);return`
+        <div class="card" style="padding:13px 15px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:9px;color:var(--muted)">${p.id}</div>
+              <div style="font-size:14px;font-weight:700;margin-top:2px">${cl.nombre}</div>
+              <div style="font-size:10px;color:var(--muted)">${p.fecha} · ${p.items.length} ítems</div>
+              <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${bdg(p.est,EC[p.est])}<span style="font-size:10px;color:${m.color}">${m.icon} ${m.label}</span>${bdg(p.pagado?"✓ Pagado":"Pago pdte.",p.pagado?"#2d7a3a":"#c47a1a")}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;margin-left:8px">
+              <div style="font-size:17px;color:var(--gold);font-weight:800">${$n(p.total)}</div>
+              <div style="display:flex;gap:7px;margin-top:8px;justify-content:flex-end">
+                <button class="btn btn-out btn-sm" onclick="openDetallePed('${p.id}')">Ver</button>
+                ${!["entregado","cancelado"].includes(p.est)?`<button class="btn btn-sm" style="background:transparent;border:1px solid var(--grn);color:#7aba88" onclick="avanzarPed('${p.id}')">→</button>`:""}
+              </div>
+            </div>
+          </div>
+        </div>`}).join('')}
+    </div>`;
+}
+
+function openDetallePed(id){
+  const p=PEDIDOS.find(x=>x.id===id);const cl=getCl(p.cId);const m=getMp(p.pago);
+  openModal(p.id,`
+    <div style="background:var(--bg);border-radius:7px;padding:10px 13px;margin-bottom:13px;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Método de pago</div>
+      <div style="font-size:14px;color:${m.color};font-weight:700">${m.icon} ${m.label}</div></div>
+      ${bdg(p.pagado?"✓ Pagado":"Pendiente",p.pagado?"#2d7a3a":"#c47a1a")}
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Cliente</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:13px">${cl.nombre}</div>
+    <div class="divider">Ítems del pedido</div>
+    ${p.items.map(item=>{const pr=getPr(item.pId);return`
+      <div style="display:flex;border-bottom:1px solid var(--brd);padding:8px 0;align-items:center;gap:9px">
+        <img loading="lazy" src="${fs({...pr,foto:null})}" style="width:34px;height:34px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.src='${FD.default}'">
+        <span style="flex:1;font-size:12px">${pr.nom} × ${item.qty} ${pr.uni}</span>
+        <span style="font-size:12px;color:var(--gold);font-weight:600">${$n(item.qty*item.precio)}</span>
+      </div>`}).join('')}
+    <div style="display:flex;justify-content:space-between;margin-top:11px;padding-top:11px;border-top:1px solid var(--brd)"><span style="color:var(--muted)">Total</span><span style="font-size:19px;color:var(--gold);font-weight:800">${$n(p.total)}</span></div>
+    <div class="grid2" style="margin-top:13px">
+      ${!p.pagado?`<button class="btn btn-grn btn-full" onclick="cobrarPed('${p.id}')">💵 Cobrado</button>`:""}
+      <button class="btn btn-out btn-full" onclick="closeModal();goTab('remitos')">📄 Remito</button>
+      <button class="btn btn-grn btn-full" onclick="wspPed('${p.id}')">💬 WhatsApp</button>
+    </div>`);
+}
+function cobrarPed(id){PEDIDOS=PEDIDOS.map(p=>p.id===id?{...p,pagado:true}:p);toast("✓ Marcado como cobrado");closeModal();render();}
+function avanzarPed(id){
+  const ord=["pendiente","confirmado","preparando","despachado","entregado"];
+  PEDIDOS=PEDIDOS.map(p=>{if(p.id!==id)return p;const i=ord.indexOf(p.est);return{...p,est:i<ord.length-1?ord[i+1]:p.est};});
+  toast("✓ Estado actualizado");render();
+}
+function wspPed(id){
+  const p=PEDIDOS.find(x=>x.id===id);const cl=getCl(p.cId);const m=getMp(p.pago);
+  let msg=`Hola ${cl.nombre} 👋\n\nSu pedido ${p.id} está ${p.est}.\n\n`;
+  p.items.forEach(item=>{const pr=getPr(item.pId);msg+=`• ${pr.nom} × ${item.qty} ${pr.uni} = ${$n(item.qty*item.precio)}\n`;});
+  msg+=`\nTotal: ${$n(p.total)}\nPago: ${m.icon} ${m.label}\n\n— Panadería Olivia 🥖`;
+  window.open("https://wa.me/54"+cl.wsp+"?text="+encodeURIComponent(msg),"_blank");
+}
+
+function openNuevoPed(){
+  pedCarrito={};pagoActual="efectivo";
+  openModal("Nuevo Pedido",`
+    <div class="field"><label>Cliente</label><select id="ped-cl">
+      <option value="">Seleccionar...</option>
+      ${CLIENTES.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('')}
+    </select></div>
+    ${pagoSelectorHtml("efectivo")}
+    <div class="divider">Productos</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:13px" id="prod-list">
+      ${PRODS.filter(p=>p.est==="disponible").map(p=>`
+        <div style="display:flex;background:var(--bg);border:1px solid var(--brd);border-radius:7px;overflow:hidden" id="prow-${p.id}">
+          <img loading="lazy" src="${fs(p)}" style="width:50px;flex-shrink:0;object-fit:cover" onerror="this.src='${FD.default}'">
+          <div style="flex:1;padding:8px 10px;display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-size:12px;font-weight:600">${p.nom}</div><div style="font-size:10px;color:var(--gold)">${$n(p.pMay)}/${p.uni}</div></div>
+            <div id="pctl-${p.id}">
+              <button class="btn btn-gold" style="padding:5px 10px;font-size:13px" onclick="addToPedCarrito('${p.id}',${p.pMay})">+</button>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div id="ped-resumen" style="display:none;background:var(--bg);border:1px solid rgba(212,145,42,.3);border-radius:7px;padding:11px;margin-bottom:13px">
+      <div class="divider">Resumen</div>
+      <div id="ped-items-list"></div>
+      <div style="border-top:1px solid var(--brd);padding-top:8px;margin-top:8px;display:flex;justify-content:space-between">
+        <span style="color:var(--muted);font-size:12px">Total</span>
+        <span id="ped-total" style="color:var(--gold);font-size:17px;font-weight:800"></span>
+      </div>
+    </div>
+    <button class="btn btn-gold btn-full" style="padding:12px;font-size:14px" onclick="confirmarNuevoPed()">✓ Confirmar Pedido</button>`);
+}
+
+function addToPedCarrito(pId,precio){
+  pedCarrito[pId]=(pedCarrito[pId]||0)+1;
+  updatePedCarritoUI();
+  // update row border
+  const row=document.getElementById("prow-"+pId);
+  if(row)row.style.borderColor="var(--gold)";
+  // update control
+  const ctl=document.getElementById("pctl-"+pId);
+  if(ctl){
+    const q=pedCarrito[pId];
+    ctl.innerHTML=`<div style="display:flex;align-items:center;gap:5px">
+      <button class="btn btn-out" style="padding:3px 8px;font-size:14px" onclick="chgPedCarrito('${pId}',-1)">−</button>
+      <span style="font-size:13px;color:var(--gold);font-weight:700;min-width:18px;text-align:center">${q}</span>
+      <button class="btn btn-gold" style="padding:3px 8px;font-size:14px" onclick="chgPedCarrito('${pId}',1)">+</button>
+    </div>`;
+  }
+}
+function chgPedCarrito(pId,delta){
+  pedCarrito[pId]=(pedCarrito[pId]||0)+delta;
+  if(pedCarrito[pId]<=0){delete pedCarrito[pId];const r=document.getElementById("prow-"+pId);if(r)r.style.borderColor="var(--brd)";const c=document.getElementById("pctl-"+pId);if(c)c.innerHTML=`<button class="btn btn-gold" style="padding:5px 10px;font-size:13px" onclick="addToPedCarrito('${pId}',${PRODS.find(p=>p.id===pId)?.pMay||0})">+</button>`;}
+  else{const c=document.getElementById("pctl-"+pId);if(c){const q=pedCarrito[pId];c.innerHTML=`<div style="display:flex;align-items:center;gap:5px"><button class="btn btn-out" style="padding:3px 8px;font-size:14px" onclick="chgPedCarrito('${pId}',-1)">−</button><span style="font-size:13px;color:var(--gold);font-weight:700;min-width:18px;text-align:center">${q}</span><button class="btn btn-gold" style="padding:3px 8px;font-size:14px" onclick="chgPedCarrito('${pId}',1)">+</button></div>`;}}
+  updatePedCarritoUI();
+}
+function updatePedCarritoUI(){
+  const entries=Object.entries(pedCarrito);
+  const res=document.getElementById("ped-resumen");
+  if(!res)return;
+  if(entries.length===0){res.style.display="none";return;}
+  res.style.display="block";
+  let total=0;
+  const html=entries.map(([pId,qty])=>{const pr=getPr(pId);const sub=qty*(PRODS.find(p=>p.id===pId)?.pMay||0);total+=sub;return`<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>${pr.nom} × ${qty}</span><span style="color:var(--gold)">${$n(sub)}</span></div>`;}).join('');
+  document.getElementById("ped-items-list").innerHTML=html;
+  document.getElementById("ped-total").textContent=$n(total);
+}
+function confirmarNuevoPed(){
+  const cId=document.getElementById("ped-cl").value;
+  const entries=Object.entries(pedCarrito);
+  if(!cId||entries.length===0){toast("⚠ Seleccioná cliente y productos");return;}
+  const items=entries.map(([pId,qty])=>({pId,qty,precio:PRODS.find(p=>p.id===pId)?.pMay||0}));
+  const total=items.reduce((a,i)=>a+i.qty*i.precio,0);
+  const n={id:"PED-"+String(PEDIDOS.length+46).padStart(4,"0"),cId,fecha:new Date().toISOString().split("T")[0],est:"pendiente",pago:pagoActual,pagado:pagoActual!=="cuenta",items,total};
+  PEDIDOS.unshift(n);pedCarrito={};closeModal();toast("✓ "+n.id+" creado");render();
+}
+
+// ═══════════════════════════════════════════════
+// CLIENTES
+// ═══════════════════════════════════════════════
+let cliBusq="";let cliSeg="todos";
+
+function renderClientes(){
+  const lista=CLIENTES.filter(c=>c.nombre.toLowerCase().includes(cliBusq.toLowerCase())&&(cliSeg==="todos"||c.seg===cliSeg));
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:20px;font-weight:800;color:var(--cream)">Clientes</div><div style="font-size:10px;color:var(--muted)">${CLIENTES.length} registrados</div></div>
+      <button class="btn btn-gold" onclick="openNuevoCli()">+ Nuevo</button>
+    </div>
+    <input placeholder="🔍 Buscar cliente..." value="${cliBusq}" oninput="cliBusq=this.value;render()" style="width:100%;background:#140c05;border:1px solid var(--brd);border-radius:7px;padding:9px 13px;color:var(--txt);font-size:13px;outline:none;box-sizing:border-box;margin-bottom:10px">
+    <div style="display:flex;gap:7px;margin-bottom:13px;overflow-x:auto;padding-bottom:3px">
+      ${["todos","VIP","activo","inactivo"].map(s=>`<button onclick="cliSeg='${s}';render()" style="background:${cliSeg===s?"var(--gold)":"transparent"};color:${cliSeg===s?"#1a0a02":"var(--muted)"};border:1px solid ${cliSeg===s?"var(--gold)":"var(--brd)"};border-radius:20px;padding:5px 13px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">${s}</button>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">
+      ${lista.map(c=>`
+        <div class="card" style="padding:13px 15px;cursor:pointer" onclick="openDetalleCli('${c.id}')">
+          <div style="display:flex;justify-content:space-between">
+            <div>
+              <div style="font-size:14px;font-weight:700">${c.nombre}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:1px">${c.cuit}</div>
+              <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap">${bdg(c.seg,SC[c.seg]||"#7a5c38")}${c.deuda>0?bdg("Deuda","#a83225"):""}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:10px;color:var(--muted)">Compras</div>
+              <div style="font-size:13px;color:var(--gold);font-weight:700">${$n(c.acum)}</div>
+              <div style="font-size:9px;color:var(--muted);margin-top:2px">${c.ultima}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function openDetalleCli(id){
+  const c=CLIENTES.find(x=>x.id===id);if(!c)return;
+  openModal(c.nombre,`
+    <div class="grid2" style="margin-bottom:13px">
+      ${[["CUIT",c.cuit],["WhatsApp",c.wsp],["Segmento",c.seg],["Últ. compra",c.ultima]].map(([k,v])=>`<div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">${k}</div><div style="font-size:13px">${v}</div></div>`).join('')}
+    </div>
+    <div class="grid2" style="margin-bottom:13px;border-top:1px solid var(--brd);padding-top:13px">
+      <div style="text-align:center;background:var(--bg);border-radius:7px;padding:10px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Compras totales</div><div style="font-size:17px;color:var(--gold);font-weight:700;margin-top:2px">${$n(c.acum)}</div></div>
+      <div style="text-align:center;background:var(--bg);border-radius:7px;padding:10px"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em">Deuda</div><div style="font-size:17px;color:${c.deuda>0?"var(--red)":"var(--grn)"};font-weight:700;margin-top:2px">${c.deuda>0?$n(c.deuda):"Al día ✓"}</div></div>
+    </div>
+    <a href="https://wa.me/54${c.wsp}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#1a5c25;border:1px solid var(--grn);border-radius:7px;padding:11px;text-decoration:none;color:#7aba88;font-size:13px;font-weight:600">💬 Contactar por WhatsApp</a>`);
+}
+
+function openNuevoCli(){
+  openModal("Nuevo Cliente",`
+    <div class="field"><label>Nombre comercial</label><input id="c-nom"></div>
+    <div class="field"><label>CUIT</label><input id="c-cuit"></div>
+    <div class="field"><label>WhatsApp</label><input id="c-wsp"></div>
+    <div class="field"><label>Segmento</label><select id="c-seg">
+      ${["activo","VIP","potencial","inactivo"].map(s=>`<option value="${s}">${s}</option>`).join('')}
+    </select></div>
+    <button class="btn btn-gold btn-full" style="margin-top:4px" onclick="saveCli()">Guardar</button>`);
+}
+function saveCli(){
+  const nom=document.getElementById("c-nom").value.trim();if(!nom)return;
+  CLIENTES.push({id:"C"+String(CLIENTES.length+1).padStart(3,"0"),nombre:nom,cuit:document.getElementById("c-cuit").value,wsp:document.getElementById("c-wsp").value,seg:document.getElementById("c-seg").value,deuda:0,ultima:"-",acum:0});
+  closeModal();toast("✓ Cliente creado");render();
+}
+
+// ═══════════════════════════════════════════════
+// STOCK
+// ═══════════════════════════════════════════════
+function renderStock(){
+  const alertas=PRODS.filter(p=>p.stk<=p.sMin);
+  const valor=PRODS.reduce((a,p)=>a+p.stk*p.pMay,0);
+  return `
+    <div style="font-size:20px;font-weight:800;color:var(--cream);margin-bottom:4px">Stock</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:14px">Inventario valorizado</div>
+    ${alertas.length>0?`<div style="background:rgba(196,122,26,.12);border:1px solid rgba(196,122,26,.4);border-radius:8px;padding:11px 14px;margin-bottom:12px"><div style="font-size:13px;color:var(--amb);font-weight:700">⚠️ ${alertas.length} alerta${alertas.length>1?"s":""}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${alertas.map(a=>a.nom).join(", ")}</div></div>`:""}
+    <div class="grid4" style="margin-bottom:14px">
+      <div class="card kpi"><div class="kpi-lbl">Valor inventario</div><div class="kpi-val" style="font-size:16px;color:var(--gold)">${$n(valor)}</div></div>
+      <div class="card kpi"><div class="kpi-lbl">Sin stock</div><div class="kpi-val" style="color:var(--red)">${PRODS.filter(p=>p.stk===0).length}</div></div>
+      <div class="card kpi"><div class="kpi-lbl">Alertas</div><div class="kpi-val" style="color:var(--amb)">${alertas.length}</div></div>
+      <div class="card kpi"><div class="kpi-lbl">Productos</div><div class="kpi-val" style="color:var(--creamD)">${PRODS.length}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:9px">
+      ${PRODS.map(p=>{const al=p.stk<=p.sMin&&p.stk>0,ss=p.stk===0;const pct=Math.min(100,Math.round(p.stk/Math.max(p.sMin*3,1)*100));return`
+        <div style="display:flex;background:var(--card);border:1px solid ${ss?"rgba(168,50,37,.5)":al?"rgba(196,122,26,.5)":"var(--brd)"};border-radius:9px;overflow:hidden">
+          <img loading="lazy" src="${fs(p)}" style="width:58px;flex-shrink:0;object-fit:cover" onerror="this.src='${FD.default}'">
+          <div style="flex:1;padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <div><div style="font-size:12px;font-weight:700">${p.nom}</div><div style="font-size:9px;color:var(--muted)">${p.cat}</div></div>
+              <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:${ss?"var(--red)":al?"var(--amb)":"var(--creamD)"}">${fN(p.stk)} ${p.uni}${al?" ⚠️":""}${ss?" ❌":""}</div><div style="font-size:9px;color:var(--muted)">mín. ${p.sMin}</div></div>
+            </div>
+            <div class="prog"><div class="prog-fill" style="width:${pct}%;background:${ss?"var(--red)":al?"var(--amb)":"linear-gradient(90deg,var(--gold),var(--goldL))"}"></div></div>
+          </div>
+        </div>`}).join('')}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// REPORTES
+// ═══════════════════════════════════════════════
+let repPeriodo="diario";
+
+function renderReportes(){
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:20px;font-weight:800;color:var(--cream)">Reportes</div><div style="font-size:10px;color:var(--muted)">Análisis de ventas y rendimiento</div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;border-radius:7px;overflow:hidden;border:1px solid var(--brd)">
+          ${[["diario","Diario"],["semanal","Semanal"],["mensual","Mensual"]].map(([id,l])=>`<button onclick="repPeriodo='${id}';render()" style="background:${repPeriodo===id?"var(--gold)":"transparent"};color:${repPeriodo===id?"#1a0a02":"var(--muted)"};border:none;padding:8px 16px;font-size:12px;font-weight:${repPeriodo===id?700:400};cursor:pointer;font-family:inherit">${l}</button>`).join('')}
+        </div>
+        <button class="btn btn-out" onclick="descargarReporte()">⬇ Descargar CSV</button>
+      </div>
+    </div>
+    ${repPeriodo==="diario"?renderRepDiario():repPeriodo==="semanal"?renderRepSemanal():renderRepMensual()}`;
+}
+
+function renderRepDiario(){
+  const deudas=PEDIDOS.filter(p=>!p.pagado);
+  return `
+    <div class="grid4" style="margin-bottom:14px">
+      ${[{l:"Ventas hoy",v:$n(892000),c:"var(--gold)",s:"+12% vs ayer"},{l:"Pedidos",v:"7",c:"var(--goldL)",s:"3 entregados"},{l:"Ticket prom.",v:$n(127000),c:"var(--creamD)"},{l:"Margen",v:"38%",c:"var(--grn)",s:"meta 35%"}].map(k=>`<div class="card kpi"><div class="kpi-lbl">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:18px">${k.v}</div>${k.s?`<div class="kpi-sub">${k.s}</div>`:""}</div>`).join('')}
+    </div>
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="card"><div class="divider">Ventas por hora</div>${barChart([{d:"6h",v:42},{d:"7h",v:98},{d:"8h",v:185},{d:"9h",v:210},{d:"10h",v:175},{d:"11h",v:92},{d:"12h",v:45}],"var(--gold)",80)}</div>
+      <div class="card"><div class="divider">Cobros por método</div>
+        ${[{l:"Efectivo",v:"$401K",p:45,c:"#2d7a3a"},{l:"Transferencia",v:"$285K",p:32,c:"#2a6cb5"},{l:"Tarjeta",v:"$134K",p:15,c:"#7a3db5"},{l:"Cta. Cte.",v:"$72K",p:8,c:"#c47a1a"}].map(m=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--brd)">
+            <div style="width:9px;height:9px;border-radius:2px;background:${m.c};flex-shrink:0"></div>
+            <span style="font-size:12px;flex:1">${m.l}</span>
+            <div class="prog" style="width:60px"><div class="prog-fill" style="width:${m.p}%;background:${m.c}"></div></div>
+            <span style="font-size:11px;color:var(--muted);min-width:44px;text-align:right">${m.v}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="divider">Top productos hoy</div>
+        ${[{n:"Pan Francés",u:"320 kg",v:"$294K"},{n:"Medialunas",u:"48 doc",v:"$216K"},{n:"Pre-pizza",u:"52 u",v:"$166K"},{n:"Pan Integral",u:"88 kg",v:"$106K"}].map(p=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><span style="font-size:12px">${p.n} <span style="font-size:9px;color:var(--muted)">${p.u}</span></span><span style="font-size:12px;color:var(--gold);font-weight:700">${p.v}</span></div>`).join('')}
+      </div>
+      <div class="card"><div class="divider">Deudas pendientes</div>
+        ${deudas.map(p=>{const cl=getCl(p.cId);return`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><span style="font-size:12px">${cl.nombre}</span><span style="font-size:12px;color:var(--red);font-weight:700">${$n(p.total)}</span></div>`;}).join('')}
+        <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-size:11px;color:var(--muted);font-weight:700">Total</span><span style="font-size:13px;color:var(--red);font-weight:700">${$n(deudas.reduce((a,p)=>a+p.total,0))}</span></div>
+      </div>
+    </div>`;
+}
+
+function renderRepSemanal(){
+  return `
+    <div class="grid4" style="margin-bottom:14px">
+      ${[{l:"Ventas semana",v:$n(4650000),c:"var(--gold)",s:"+8% sem. ant."},{l:"Pedidos",v:"38",c:"var(--goldL)",s:"34 entregados"},{l:"Ticket prom.",v:$n(122000),c:"var(--creamD)",s:"+3%"},{l:"Clientes activos",v:"12",c:"var(--grn)",s:"2 nuevos"}].map(k=>`<div class="card kpi"><div class="kpi-lbl">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:18px">${k.v}</div>${k.s?`<div class="kpi-sub">${k.s}</div>`:""}</div>`).join('')}
+    </div>
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="card"><div class="divider">Ventas por día</div>${barChart(VS,"var(--gold)")}</div>
+      <div class="card"><div class="divider">Ranking clientes</div>
+        ${[...CLIENTES].sort((a,b)=>b.acum-a.acum).slice(0,5).map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--brd)"><div><div style="font-size:12px;font-weight:600">${c.nombre}</div>${bdg(c.seg,SC[c.seg]||"#7a5c38")}</div><span style="font-size:12px;color:var(--gold);font-weight:700;margin-left:6px">${$n(c.acum)}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="card"><div class="divider">Comparativa semana anterior</div>
+      <div class="grid3" style="text-align:center">
+        ${[{l:"Sem. anterior",v:$n(4310000),c:"var(--muted)"},{l:"Esta semana",v:$n(4650000),c:"var(--gold)"},{l:"Diferencia",v:"+$340K (+8%)",c:"var(--grn)"}].map(x=>`<div><div style="font-size:10px;color:var(--muted);margin-bottom:4px">${x.l}</div><div style="font-size:18px;font-weight:700;color:${x.c}">${x.v}</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderRepMensual(){
+  const topProds=[{n:"Pan Francés",v:3900000,p:100},{n:"Medialunas",v:2600000,p:67},{n:"Pre-pizza Grande",v:1400000,p:36},{n:"Torta Cumpleaños",v:1100000,p:28},{n:"Pan Integral",v:840000,p:22}];
+  return `
+    <div class="grid4" style="margin-bottom:14px">
+      ${[{l:"Facturación mayo",v:$n(10600000),c:"var(--gold)",s:"+7% vs abril"},{l:"Pedidos",v:"148",c:"var(--goldL)",s:"142 entregados"},{l:"Margen bruto",v:"38%",c:"var(--grn)",s:"meta 35%"},{l:"Clientes activos",v:"47",c:"var(--creamD)",s:"8 nuevos"}].map(k=>`<div class="card kpi"><div class="kpi-lbl">${k.l}</div><div class="kpi-val" style="color:${k.c};font-size:18px">${k.v}</div>${k.s?`<div class="kpi-sub">${k.s}</div>`:""}</div>`).join('')}
+    </div>
+    <div class="grid2" style="margin-bottom:14px">
+      <div class="card"><div class="divider">Evolución 2026</div>${barChart(VM,"var(--grn)")}</div>
+      <div class="card"><div class="divider">Top clientes del mes</div>
+        ${[...CLIENTES].sort((a,b)=>b.acum-a.acum).slice(0,5).map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--brd)"><div><div style="font-size:12px;font-weight:600">${c.nombre}</div>${bdg(c.seg,SC[c.seg]||"#7a5c38")}</div><span style="font-size:12px;color:var(--gold);font-weight:700;margin-left:6px">${$n(c.acum)}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="divider">Productos más vendidos</div>
+        ${topProds.map(p=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${p.n}</span><span style="color:var(--gold);font-weight:700">${$n(p.v)}</span></div><div class="prog"><div class="prog-fill" style="width:${p.p}%;background:var(--gold)"></div></div></div>`).join('')}
+      </div>
+      <div class="card"><div class="divider">Comparativa anual 2026</div>
+        ${VM.map((m,i)=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><span style="font-size:12px;color:${i===VM.length-1?"var(--gold)":"var(--muted)"};font-weight:${i===VM.length-1?700:400}">${m.d}</span><span style="font-size:12px;color:${i===VM.length-1?"var(--gold)":"var(--txt)"};font-weight:${i===VM.length-1?700:400}">${$n(m.v*1000)}</span></div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-size:11px;color:var(--muted)">Promedio mensual</span><span style="font-size:12px;color:var(--grn);font-weight:700">${$n(VM.reduce((a,m)=>a+m.v,0)/VM.length*1000)}</span></div>
+      </div>
+    </div>`;
+}
+
+function descargarReporte(){
+  const rows=[];
+  rows.push(["Período","Facturación","Pedidos","Margen"]);
+  rows.push(["Enero","7800000","",""],["Febrero","8600000","",""],["Marzo","7400000","",""],["Abril","9800000","",""],["Mayo","10600000","148","38%"]);
+  rows.push([]);
+  rows.push(["Pedido","Cliente","Fecha","Estado","Pago","Total","Pagado"]);
+  PEDIDOS.forEach(p=>{const cl=getCl(p.cId);rows.push([p.id,cl.nombre,p.fecha,p.est,getMp(p.pago).label,$n(p.total),p.pagado?"Sí":"No"]);});
+  rows.push([]);
+  rows.push(["Cliente","Segmento","Compras","Deuda","Última compra"]);
+  CLIENTES.forEach(c=>rows.push([c.nombre,c.seg,$n(c.acum),$n(c.deuda),c.ultima]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="Reporte-Olivia-"+repPeriodo+"-"+new Date().toISOString().split("T")[0]+".csv";
+  document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+  toast("✓ Reporte CSV descargado");
+}
+
+// ═══════════════════════════════════════════════
+// REMITOS
+// ═══════════════════════════════════════════════
+let remitoSelId=PEDIDOS[0]?.id||"";
+
+function renderRemitos(){
+  const ped=PEDIDOS.find(p=>p.id===remitoSelId)||PEDIDOS[0];
+  if(!ped)return`<div style="color:var(--muted);padding:40px;text-align:center">No hay pedidos disponibles.</div>`;
+  const cl=getCl(ped.cId);const m=getMp(ped.pago);
+  const total=ped.items.reduce((a,i)=>a+i.qty*i.precio,0);
+  const numR="R-"+ped.id.split("-").pop();
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-size:20px;font-weight:800;color:var(--cream)">Remitos</div><div style="font-size:10px;color:var(--muted)">Generación automática por pedido</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="field">
+        <label>Seleccionar pedido</label>
+        <select onchange="remitoSelId=this.value;render()">
+          ${PEDIDOS.map(p=>{const c=getCl(p.cId);return`<option value="${p.id}" ${p.id===remitoSelId?"selected":""}>${p.id} · ${c.nombre} · ${$n(p.total)}</option>`;}).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${bdg(ped.est,EC[ped.est]||"#7a5c38")}<span style="font-size:11px;color:${m.color}">${m.icon} ${m.label}</span>${bdg(ped.pagado?"✓ Pagado":"Pago pendiente",ped.pagado?"#2d7a3a":"#c47a1a")}</div>
+    </div>
+
+    <!-- REMITO VISUAL -->
+    <div class="card" style="margin-bottom:13px" id="remito-preview">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:1px solid var(--brd);margin-bottom:12px">
+        <div>
+          <div style="font-size:16px;font-weight:900;color:var(--gold)">🥖 Panadería Olivia</div>
+          <div style="font-size:10px;color:var(--muted)">Tucumán, Argentina</div>
+          <div style="font-size:10px;color:var(--muted)">3816477520 · panaderiaolivia@gmail.com</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--muted)">REMITO</div>
+          <div style="font-size:22px;font-weight:900;color:var(--gold)">#${numR}</div>
+          <div style="font-size:10px;color:var(--muted)">Pedido: ${ped.id}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;font-size:10px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap">
+        <span><strong style="color:var(--txt)">Fecha:</strong> ${ped.fecha}</span>
+        <span><strong style="color:var(--txt)">Vendedor:</strong> Adriana</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;background:var(--card2);border-radius:7px;padding:11px;margin-bottom:13px">
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px">Cliente</div><div style="font-size:14px;font-weight:700">${cl.nombre}</div><div style="font-size:11px;color:var(--muted);margin-top:1px">${cl.cuit}</div></div>
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1px">WhatsApp</div><div style="font-size:11px">${cl.wsp}</div></div>
+      </div>
+      <div style="margin-bottom:13px">
+        <div style="display:grid;grid-template-columns:1fr 65px 75px 75px;padding:5px 0;border-bottom:1px solid var(--brd);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">
+          <span>Producto</span><span style="text-align:center">Cant.</span><span style="text-align:right">P.Unit.</span><span style="text-align:right">Subtotal</span>
+        </div>
+        ${ped.items.map(item=>{const pr=getPr(item.pId);return`
+          <div style="display:grid;grid-template-columns:1fr 65px 75px 75px;padding:8px 0;border-bottom:1px solid var(--brd);font-size:13px;align-items:center">
+            <div><div style="font-weight:600">${pr.nom}</div><div style="font-size:10px;color:var(--muted)">${pr.cat}</div></div>
+            <div style="text-align:center;color:var(--muted)">${item.qty} ${pr.uni}</div>
+            <div style="text-align:right;color:var(--muted)">${$n(item.precio)}</div>
+            <div style="text-align:right;color:var(--gold);font-weight:700">${$n(item.qty*item.precio)}</div>
+          </div>`}).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--brd);margin-bottom:12px">
+        <span style="font-size:14px;color:var(--muted);font-weight:700">TOTAL</span>
+        <span style="font-size:22px;color:var(--gold);font-weight:900">${$n(total)}</span>
+      </div>
+      <div style="background:var(--card2);border-radius:7px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+        <div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Método de pago</div><div style="font-size:13px;color:${m.color};font-weight:700">${m.icon} ${m.label}</div></div>
+        ${bdg(ped.pagado?"✓ Pagado":"Pendiente",ped.pagado?"#2d7a3a":"#c47a1a")}
+      </div>
+      <div style="border-top:1px solid var(--brd);padding-top:11px">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px">Firma y aclaración del receptor</div>
+        <div style="height:44px;border:1px dashed var(--brd);border-radius:5px;background:var(--card)"></div>
+        <div style="font-size:9px;color:var(--muted);margin-top:7px;text-align:center">Panadería Olivia · Tucumán · 3816477520 · Conservar como comprobante</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <button class="btn btn-out btn-full" onclick="descargarRemito()">⬇ Descargar HTML</button>
+      <button class="btn btn-grn btn-full" onclick="wspRemito()">💬 Enviar WhatsApp</button>
+    </div>`;
+}
+
+function descargarRemito(){
+  const ped=PEDIDOS.find(p=>p.id===remitoSelId)||PEDIDOS[0];
+  if(!ped)return;
+  const cl=getCl(ped.cId);const m=getMp(ped.pago);
+  const total=ped.items.reduce((a,i)=>a+i.qty*i.precio,0);
+  const numR="R-"+ped.id.split("-").pop();
+  const rows=ped.items.map(item=>{const pr=getPr(item.pId);return`<tr><td><b>${pr.nom}</b><br><small style="color:#7a5c38">${pr.cat}</small></td><td style="text-align:center;color:#7a5c38">${item.qty} ${pr.uni}</td><td style="text-align:right;color:#7a5c38">${$n(item.precio)}</td><td style="text-align:right;color:#d4912a;font-weight:700">${$n(item.qty*item.precio)}</td></tr>`;}).join('');
+  const html=`<!DOCTYPE html><html><head><title>Remito ${numR} - Panadería Olivia</title><meta charset="UTF-8">
+  <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Segoe UI',Arial,sans-serif;padding:28px;color:#1a0f08;font-size:12px;max-width:700px;margin:auto;}
+  .hdr{display:flex;justify-content:space-between;border-bottom:1px solid #ccc;padding-bottom:14px;margin-bottom:12px;}
+  h1{font-size:18px;font-weight:700;color:#d4912a;}.sub{font-size:10px;color:#7a5c38;}.num{font-size:22px;font-weight:800;color:#d4912a;}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;background:#f5f0e8;padding:11px;border-radius:7px;margin:10px 0;}
+  .lbl{font-size:9px;color:#7a5c38;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;}.val{font-size:13px;font-weight:600;}
+  table{width:100%;border-collapse:collapse;margin:10px 0;}th{font-size:9px;color:#7a5c38;text-transform:uppercase;padding:4px 0;border-bottom:1px solid #ccc;text-align:left;}
+  th:last-child,td:last-child{text-align:right;}td{padding:7px 0;border-bottom:.5px solid #eee;}
+  .total{display:flex;justify-content:space-between;padding:11px 0;border-top:2px solid #ccc;}
+  .pago{background:#f5f0e8;border-radius:7px;padding:10px 14px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;}
+  .firma{border:1px dashed #ccc;border-radius:6px;height:50px;margin-top:7px;}
+  .footer{text-align:center;font-size:10px;color:#7a5c38;margin-top:14px;padding-top:11px;border-top:1px solid #eee;}
+  @media print{body{padding:10px;}.no-print{display:none;}}</style></head><body>
+  <button class="no-print" onclick="window.print()" style="margin-bottom:16px;padding:9px 18px;background:#d4912a;color:#1a0a02;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;">🖨️ Imprimir / Guardar como PDF</button>
+  <div class="hdr"><div><h1>🥖 Panadería Olivia</h1><p class="sub">Tucumán, Argentina</p><p class="sub">3816477520 · panaderiaolivia@gmail.com</p></div>
+  <div style="text-align:right"><p class="sub">REMITO</p><p class="num">#${numR}</p><p class="sub">Pedido: ${ped.id}</p></div></div>
+  <div style="font-size:10px;color:#7a5c38;margin-bottom:8px;display:flex;gap:16px;"><span><b style="color:#333">Fecha:</b> ${ped.fecha}</span><span><b style="color:#333">Vendedor:</b> Adriana</span></div>
+  <div class="g2"><div><p class="lbl">Cliente</p><p class="val">${cl.nombre}</p><p class="sub">${cl.cuit}</p></div><div><p class="lbl">WhatsApp</p><p class="val">${cl.wsp}</p></div></div>
+  <table><thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">P.Unit.</th><th>Subtotal</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="total"><span style="font-size:14px;font-weight:700;color:#7a5c38">TOTAL</span><span style="font-size:22px;font-weight:800;color:#d4912a">${$n(total)}</span></div>
+  <div class="pago"><div><p class="lbl">Método de pago</p><p style="font-size:13px;font-weight:700;color:${m.color}">${m.icon} ${m.label}</p></div>
+  <span style="background:${ped.pagado?"#2d7a3a22":"#c47a1a22"};color:${ped.pagado?"#2d7a3a":"#c47a1a"};border:1px solid ${ped.pagado?"#2d7a3a":"#c47a1a"};border-radius:4px;padding:3px 9px;font-size:10px;font-weight:700">${ped.pagado?"✓ Pagado":"Pendiente"}</span></div>
+  <p class="lbl" style="margin-top:13px">Firma y aclaración del receptor</p><div class="firma"></div>
+  <div class="footer">Panadería Olivia · Tucumán · 3816477520 · Conservar como comprobante</div>
+  </body></html>`;
+  const blob=new Blob([html],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="Remito-"+numR+".html";
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+  toast("✓ Remito descargado — abrilo en el navegador para imprimir o guardar PDF");
+}
+
+function wspRemito(){
+  const ped=PEDIDOS.find(p=>p.id===remitoSelId)||PEDIDOS[0];if(!ped)return;
+  const cl=getCl(ped.cId);const m=getMp(ped.pago);
+  const total=ped.items.reduce((a,i)=>a+i.qty*i.precio,0);
+  const numR="R-"+ped.id.split("-").pop();
+  let msg=`Hola ${cl.nombre} 👋\n\n*Remito #${numR}*\nPedido: ${ped.id} · ${ped.fecha}\n\n`;
+  ped.items.forEach(item=>{const pr=getPr(item.pId);msg+=`• ${pr.nom} × ${item.qty} ${pr.uni} = ${$n(item.qty*item.precio)}\n`;});
+  msg+=`\n*Total:* ${$n(total)}\n*Pago:* ${m.icon} ${m.label}${ped.pagado?" ✓ Pagado":""}\n\nGracias por su compra!\n— Panadería Olivia 🥖`;
+  window.open("https://wa.me/54"+cl.wsp+"?text="+encodeURIComponent(msg),"_blank");
+}
+
+// ═══════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════
+function resetDatos(){
+  if(!confirm("⚠️ ¿Limpiar TODOS los datos?\n\nClientes, productos y pedidos serán eliminados.\nEsta acción no se puede deshacer."))return;
+  CLIENTES=[];PRODS=[];PEDIDOS=[];
+  toast("✓ Datos limpiados — podés cargar todo desde cero",3500);
+  render();
+}
+
+// ═══════════════════════════════════════════════
+// BIND EVENTS (modal content re-binding)
+// ═══════════════════════════════════════════════
+function bindEvents(){}
+function bindModalEvents(){}
+
+// click fuera del modal lo cierra
+document.getElementById("modal").addEventListener("click",e=>{if(e.target===document.getElementById("modal"))closeModal();});
+
+// ═══════════════════════════════════════════════
+// VISTA CLIENTE — catálogo público
+// ═══════════════════════════════════════════════
+function renderVistaCliente(){
+  const cats=["todos",...new Set(PRODS.map(p=>p.cat))];
+  const lista=clienteCat==="todos"?PRODS.filter(p=>p.stk>0):PRODS.filter(p=>p.cat===clienteCat&&p.stk>0);
+  const totalQ=Object.values(clienteCarrito).reduce((a,q)=>a+q,0);
+  const totalP=Object.entries(clienteCarrito).reduce((a,[id,q])=>{const p=PRODS.find(x=>x.id===id);return a+(p?p.pMay*q:0);},0);
+  document.getElementById("app-wrapper").innerHTML=`
+  <div style="background:#faf7f4;min-height:100vh;font-family:'Segoe UI',sans-serif;">
+    <!-- HEADER -->
+    <div style="background:#3d1e08;padding:14px 20px;position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.3)">
+      <div>
+        <div style="font-size:17px;font-weight:900;color:#e8b05a">🥖 Panadería Olivia</div>
+        <div style="font-size:10px;color:#c4a87a">Pedidos mayoristas · Tucumán</div>
+      </div>
+      <div style="display:flex;gap:9px;align-items:center">
+        <button onclick="toggleCarritoCliente()" style="background:${totalQ>0?'rgba(232,176,90,.2)':'transparent'};border:1px solid ${totalQ>0?'#e8b05a':'rgba(232,176,90,.3)'};color:#e8b05a;border-radius:8px;padding:8px 13px;cursor:pointer;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">
+          🛒 ${totalQ>0?totalQ+' · '+$n(totalP):'Carrito'}
+        </button>
+        <button onclick="showLogin()" style="background:transparent;border:1px solid rgba(196,168,122,.3);color:#c4a87a;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:13px">⚙️</button>
+      </div>
+    </div>
+    <!-- BANNER -->
+    <div style="background:linear-gradient(135deg,#3d1e08,#241509);margin:14px 16px 0;border-radius:12px;padding:16px 18px;border:1px solid rgba(232,176,90,.2)">
+      <div style="font-size:14px;color:#f5e6c8;font-weight:700;margin-bottom:3px">¡Bienvenido/a! 👋</div>
+      <div style="font-size:12px;color:#8a6040">Elegí tus productos y confirmá el pedido por WhatsApp.</div>
+    </div>
+    <!-- CATS -->
+    <div style="display:flex;gap:7px;padding:12px 16px 0;overflow-x:auto;padding-bottom:4px">
+      ${cats.map(c=>`<button onclick="clienteCat='${c}';renderVistaCliente()" style="background:${clienteCat===c?'#c47a18':'transparent'};color:${clienteCat===c?'#fff':'#8a6040'};border:1px solid ${clienteCat===c?'#c47a18':'#e8d5bc'};border-radius:20px;padding:5px 13px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">${c}</button>`).join('')}
+    </div>
+    <!-- GRID -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:12px 16px 100px">
+      ${lista.map(p=>{const q=clienteCarrito[p.id]||0;return`
+      <div style="background:#fff;border:1.5px solid ${q>0?'#c47a18':'#e8d5bc'};border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+        <div style="position:relative;height:140px;overflow:hidden;cursor:pointer" onclick="verDetalleCliente('${p.id}')">
+          <img loading="lazy" src="${fs(p)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='${FD.default}'">
+          ${q>0?`<div style="position:absolute;top:7px;left:7px;background:#c47a18;color:#fff;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">×${q}</div>`:''}
+        </div>
+        <div style="padding:10px 11px 12px">
+          <div style="font-size:9px;color:#8a6040">${p.cat}</div>
+          <div style="font-size:13px;font-weight:700;color:#2a1505;line-height:1.2;margin:3px 0 5px">${p.nom}</div>
+          <div style="font-size:14px;color:#c47a18;font-weight:800">${$n(p.pMay)}<span style="font-size:9px;color:#8a6040;font-weight:400;margin-left:2px">/${p.uni}</span></div>
+          ${q>0?`
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#faf7f4;border-radius:6px;padding:4px 7px;margin-top:7px">
+            <button onclick="chgClienteCarrito('${p.id}',-1)" style="background:#e8d5bc;border:none;border-radius:4px;width:26px;height:26px;cursor:pointer;font-size:15px;font-weight:700">−</button>
+            <span style="font-size:13px;color:#c47a18;font-weight:700">${q}</span>
+            <button onclick="chgClienteCarrito('${p.id}',1)" style="background:#c47a18;color:#fff;border:none;border-radius:4px;width:26px;height:26px;cursor:pointer;font-size:15px;font-weight:700">+</button>
+          </div>`:`
+          <button onclick="chgClienteCarrito('${p.id}',1)" style="width:100%;background:linear-gradient(135deg,#c47a18,#d4912a);color:#fff;border:none;border-radius:7px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:7px">+ Agregar</button>`}
+        </div>
+      </div>`}).join('')}
+    </div>
+    <!-- CARRITO MODAL -->
+    <div id="carrito-modal" style="display:none;position:fixed;inset:0;background:#000000aa;z-index:200;align-items:flex-end;justify-content:center">
+      <div style="background:#fff;border-radius:14px 14px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #e8d5bc;position:sticky;top:0;background:#fff">
+          <span style="font-weight:700;font-size:15px;color:#2a1505">Tu pedido 🛒</span>
+          <button onclick="toggleCarritoCliente()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#8a6040">×</button>
+        </div>
+        <div id="carrito-body" style="padding:14px 18px 24px"></div>
+      </div>
+    </div>
+    <!-- FAB -->
+    <a href="https://wa.me/5493816477520?text=Hola%20Panader%C3%ADa%20Olivia%2C%20quiero%20hacer%20un%20pedido%20%F0%9F%A5%96" target="_blank" style="position:fixed;bottom:24px;right:18px;width:54px;height:54px;background:linear-gradient(135deg,#1a7a2a,#25a040);border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:26px;box-shadow:0 4px 18px rgba(26,122,42,.7);z-index:90;animation:fabPulse 2.5s infinite">💬</a>
+  </div>`;
+}
+
+let clienteCat="todos";
+let clienteCarrito={};
+let clientePago="efectivo";
+let vistaActual="cliente"; // "cliente" | "admin"
+
+function chgClienteCarrito(id,delta){
+  clienteCarrito[id]=(clienteCarrito[id]||0)+delta;
+  if(clienteCarrito[id]<=0)delete clienteCarrito[id];
+  renderVistaCliente();
+  if(document.getElementById("carrito-modal").style.display==="flex")renderCarritoCliente();
+}
+
+function toggleCarritoCliente(){
+  const m=document.getElementById("carrito-modal");
+  if(!m)return;
+  const show=m.style.display!=="flex";
+  m.style.display=show?"flex":"none";
+  if(show)renderCarritoCliente();
+}
+
+function renderCarritoCliente(){
+  const entries=Object.entries(clienteCarrito);
+  const body=document.getElementById("carrito-body");
+  if(!body)return;
+  if(entries.length===0){body.innerHTML=`<div style="text-align:center;padding:30px 0;color:#8a6040"><div style="font-size:36px;margin-bottom:9px">🛒</div><div>Carrito vacío</div></div>`;return;}
+  const total=entries.reduce((a,[id,q])=>{const p=PRODS.find(x=>x.id===id);return a+(p?p.pMay*q:0);},0);
+  body.innerHTML=`
+    <input id="cli-nombre" placeholder="Tu nombre (opcional)" style="width:100%;background:#faf7f4;border:1px solid #e8d5bc;border-radius:6px;padding:8px 12px;color:#2a1505;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:12px">
+    <div style="font-size:9px;color:#c47a18;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:8px"><div style="flex:1;height:1px;background:rgba(196,122,26,.3)"></div>Productos<div style="flex:1;height:1px;background:rgba(196,122,26,.3)"></div></div>
+    ${entries.map(([id,q])=>{const p=PRODS.find(x=>x.id===id);if(!p)return'';return`
+    <div style="display:flex;border-bottom:1px solid #e8d5bc;padding:8px 0;align-items:center;gap:9px">
+      <img loading="lazy" src="${fs(p)}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.src='${FD.default}'">
+      <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#2a1505">${p.nom}</div><div style="font-size:10px;color:#c47a18">${$n(p.pMay)}/${p.uni}</div></div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <button onclick="chgClienteCarrito('${id}',-1)" style="background:#e8d5bc;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:13px;font-weight:700">−</button>
+        <span style="font-size:12px;color:#c47a18;font-weight:700;min-width:16px;text-align:center">${q}</span>
+        <button onclick="chgClienteCarrito('${id}',1)" style="background:#c47a18;color:#fff;border:none;border-radius:4px;width:24px;height:24px;cursor:pointer;font-size:13px;font-weight:700">+</button>
+      </div>
+      <span style="font-size:12px;color:#c47a18;font-weight:700;min-width:66px;text-align:right">${$n(p.pMay*q)}</span>
+    </div>`;}).join('')}
+    <div style="display:flex;justify-content:space-between;padding:11px 0;border-top:1px solid #e8d5bc">
+      <span style="font-size:14px;color:#8a6040;font-weight:700">TOTAL</span>
+      <span style="font-size:19px;color:#c47a18;font-weight:900">${$n(total)}</span>
+    </div>
+    <div style="margin-bottom:13px">
+      <div style="font-size:9px;color:#8a6040;margin-bottom:8px;letter-spacing:.07em;text-transform:uppercase">Método de pago</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${MP.map(m=>`<button onclick="clientePago='${m.id}';renderCarritoCliente()" style="background:${clientePago===m.id?m.color+'22':'#faf7f4'};border:2px solid ${clientePago===m.id?m.color:'#e8d5bc'};border-radius:8px;padding:9px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px">
+          <span style="font-size:19px">${m.icon}</span>
+          <span style="font-size:10px;font-weight:700;color:${clientePago===m.id?m.color:'#8a6040'}">${m.label}</span>
+        </button>`).join('')}
+      </div>
+    </div>
+    <a href="${armarMsgCliente(total)}" target="_blank" onclick="confirmarPedidoCliente()" style="display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#1a7a2a,#25a040);border-radius:10px;padding:14px;text-decoration:none">
+      <span style="font-size:22px">💬</span>
+      <div><div style="font-size:14px;font-weight:800;color:#fff">Confirmar por WhatsApp</div><div style="font-size:10px;color:#a0d4a8">Se abre con tu pedido listo</div></div>
+    </a>`;
+}
+
+function armarMsgCliente(total){
+  const nombre=document.getElementById("cli-nombre")?.value||"Cliente";
+  const m=getMp(clientePago);
+  let msg=`Hola Panadería Olivia 🥖
+
+*Pedido de:* ${nombre}
+
+`;
+  Object.entries(clienteCarrito).forEach(([id,q])=>{const p=PRODS.find(x=>x.id===id);msg+=`• ${p?.nom} × ${q} ${p?.uni} = ${$n(p.pMay*q)}
+`;});
+  msg+=`
+*Total:* ${$n(total)}
+*Pago:* ${m.icon} ${m.label}`;
+  // SAVE ORDER to PEDIDOS so admin can see it
+  const items=Object.entries(clienteCarrito).map(([pId,qty])=>({pId,qty,precio:PRODS.find(p=>p.id===pId)?.pMay||0}));
+  const newPed={id:"PED-"+String(PEDIDOS.length+46).padStart(4,"0"),cId:"CLIENTE",fecha:new Date().toISOString().split("T")[0],est:"pendiente",pago:clientePago,pagado:false,items,total,clienteNombre:nombre};
+  PEDIDOS.unshift(newPed);
+  return "https://wa.me/5493816477520?text="+encodeURIComponent(msg);
+}
+
+function confirmarPedidoCliente(){
+  setTimeout(()=>{clienteCarrito={};toggleCarritoCliente();renderVistaCliente();},1000);
+}
+
+function verDetalleCliente(id){
+  const p=PRODS.find(x=>x.id===id);if(!p)return;
+  const m=document.getElementById("carrito-modal");
+  // Use existing modal system
+  openModal(p.nom,`
+    <div style="border-radius:9px;overflow:hidden;height:200px;margin-bottom:13px">
+      <img src="${fs(p)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='${FD.default}'">
+    </div>
+    <div style="font-size:12px;color:#8a6040;margin-bottom:13px">${p.desc}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="text-align:center;background:#faf7f4;border-radius:7px;padding:11px">
+        <div style="font-size:9px;color:#8a6040;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Precio mayorista</div>
+        <div style="font-size:18px;color:#c47a18;font-weight:800">${$n(p.pMay)}</div>
+        <div style="font-size:10px;color:#8a6040">por ${p.uni}</div>
+      </div>
+      <div style="text-align:center;background:#faf7f4;border-radius:7px;padding:11px">
+        <div style="font-size:9px;color:#8a6040;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Categoría</div>
+        <div style="font-size:14px;color:#5a3010;font-weight:700">${p.cat}</div>
+      </div>
+    </div>
+    <button onclick="chgClienteCarrito('${p.id}',1);closeModal()" style="width:100%;background:linear-gradient(135deg,#c47a18,#d4912a);color:#fff;border:none;border-radius:8px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">+ Agregar al carrito</button>`);
+}
+
+function showLogin(){
+  openModal("Acceso Administrador",`
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:44px;margin-bottom:8px">🥖</div>
+      <div style="font-size:13px;color:#8a6040">Ingresá la contraseña para acceder al panel</div>
+    </div>
+    <div style="margin-bottom:11px">
+      <input type="password" id="login-pass" placeholder="Contraseña" style="width:100%;background:#faf7f4;border:1px solid #e8d5bc;border-radius:6px;padding:9px 12px;color:#2a1505;font-size:13px;outline:none;box-sizing:border-box">
+    </div>
+    <div id="login-err" style="display:none;font-size:11px;color:#a83225;text-align:center;margin-bottom:9px">⚠ Contraseña incorrecta</div>
+    <button onclick="doLogin()" style="width:100%;background:linear-gradient(135deg,#c47a18,#d4912a);color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:9px">Ingresar al sistema</button>
+    <button onclick="closeModal()" style="width:100%;background:#faf7f4;border:1px solid #e8d5bc;color:#8a6040;border-radius:8px;padding:10px;font-size:13px;cursor:pointer">← Volver al catálogo</button>
+    <div style="text-align:center;margin-top:12px;font-size:10px;color:#b0906a">Clave demo: <span style="color:#c47a18;font-weight:700">olivia2026</span></div>`);
+}
+
+function doLogin(){
+  const pass=document.getElementById("login-pass")?.value;
+  if(pass==="olivia2026"){
+    closeModal();
+    vistaActual="admin";
+    document.getElementById("app-wrapper").innerHTML='<div id="app"></div>';
+    document.getElementById("app").innerHTML=document.getElementById("app").innerHTML||"";
+    // rebuild admin
+    location.reload=undefined;
+    initAdmin();
+  } else {
+    const e=document.getElementById("login-err");
+    if(e){e.style.display="block";setTimeout(()=>e.style.display="none",2000);}
+  }
+}
+
+function initAdmin(){
+  // show the full admin layout
+  document.getElementById("app-wrapper").innerHTML=`
+    <div id="app">
+      <div id="sidebar">
+        <div class="sb-logo"><div class="sb-logo-title">🥖 Panadería Olivia</div><div class="sb-logo-sub">Panel Admin</div></div>
+        <nav id="nav">
+          <button class="nav-btn active" onclick="goTab('dashboard')"><span class="ni">◈</span><span class="nl">Dashboard</span></button>
+          <button class="nav-btn" onclick="goTab('pedidos')"><span class="ni">🛒</span><span class="nl">Pedidos</span></button>
+          <button class="nav-btn" onclick="goTab('catalogo')"><span class="ni">📸</span><span class="nl">Catálogo</span></button>
+          <button class="nav-btn" onclick="goTab('clientes')"><span class="ni">👥</span><span class="nl">Clientes</span></button>
+          <button class="nav-btn" onclick="goTab('stock')"><span class="ni">📦</span><span class="nl">Stock</span></button>
+          <button class="nav-btn" onclick="goTab('reportes')"><span class="ni">📊</span><span class="nl">Reportes</span></button>
+          <button class="nav-btn" onclick="goTab('remitos')"><span class="ni">📄</span><span class="nl">Remitos</span></button>
+        </nav>
+        <div class="sb-footer">
+          <button class="btn btn-out btn-full" onclick="salirAlCatalogo()" style="margin-bottom:8px">← Vista cliente</button>
+          <button class="btn btn-full" onclick="resetDatos()" style="background:rgba(168,50,37,.15);border:1px solid rgba(168,50,37,.4);color:var(--red);margin-bottom:8px">🗑 Limpiar datos</button>
+          <div style="font-size:9px;color:var(--muted);text-align:center">v6 · Olivia SaaS</div>
+        </div>
+      </div>
+      <div id="main">
+        <div id="topbar">
+          <div style="display:flex;align-items:center;gap:12px">
+            <button onclick="toggleSidebar()" class="btn btn-out btn-icon">☰</button>
+            <span id="topbar-title" style="font-size:14px;font-weight:600">◈ Dashboard</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:7px;height:7px;border-radius:50%;background:var(--grn);box-shadow:0 0 5px var(--grn)"></div>
+            <span style="font-size:11px">Admin · Olivia</span>
+            <button class="btn btn-sm" onclick="salirAlCatalogo()" style="background:rgba(61,30,8,.1);border:1px solid #e8d5bc;color:#5a3010">← Catálogo</button>
+            <button class="btn btn-sm btn-red" onclick="resetDatos()">🗑 Reset</button>
+          </div>
+        </div>
+        <div id="content"></div>
+      </div>
+    </div>
+    <div id="bottomnav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(61,30,8,.97);backdrop-filter:blur(10px);border-top:1px solid #5a3010;z-index:60;justify-content:space-around;padding:6px 0 12px">
+      <button class="bnav-btn active" onclick="goTab('dashboard')"><span class="bi">◈</span><span class="bl">Inicio</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('pedidos')"><span class="bi">🛒</span><span class="bl">Pedidos</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('catalogo')"><span class="bi">📸</span><span class="bl">Catálogo</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('clientes')"><span class="bi">👥</span><span class="bl">Clientes</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('stock')"><span class="bi">📦</span><span class="bl">Stock</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('reportes')"><span class="bi">📊</span><span class="bl">Reportes</span><div class="bnav-dot"></div></button>
+      <button class="bnav-btn" onclick="goTab('remitos')"><span class="bi">📄</span><span class="bl">Remitos</span><div class="bnav-dot"></div></button>
+    </div>
+    <div class="modal-bg" id="modal">
+      <div class="modal">
+        <div class="modal-head"><h3 id="modal-title"></h3><button class="modal-close" onclick="closeModal()">×</button></div>
+        <div class="modal-body" id="modal-body"></div>
+      </div>
+    </div>
+    <a id="fab" href="https://wa.me/5493816477520?text=Hola%20Panader%C3%ADa%20Olivia%2C%20quiero%20hacer%20un%20pedido%20%F0%9F%A5%96" target="_blank">💬</a>`;
+  vistaActual="admin";
+  goTab("dashboard");
+  // mobile
+  if(window.innerWidth<=768)document.getElementById("bottomnav").style.display="flex";
+  document.getElementById("modal").addEventListener("click",e=>{if(e.target===document.getElementById("modal"))closeModal();});
+}
+
+function salirAlCatalogo(){
+  vistaActual="cliente";
+  document.getElementById("app-wrapper").innerHTML='';
+  renderVistaCliente();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+// Wrap entire app in a container
+document.body.insertAdjacentHTML('afterbegin','<div id="app-wrapper"></div>');
+// Move existing #app and #modal into wrapper
+const existingApp=document.getElementById("app");
+const existingModal=document.getElementById("modal");
+const existingFab=document.getElementById("fab");
+const existingToast=document.getElementById("toast");
+const existingBnav=document.getElementById("bottomnav");
+const wrapper=document.getElementById("app-wrapper");
+if(existingApp)wrapper.appendChild(existingApp);
+
+// Start with client view
+renderVistaCliente();
+</script>
+</body>
+</html>
